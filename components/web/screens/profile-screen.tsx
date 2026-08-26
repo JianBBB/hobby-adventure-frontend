@@ -1,18 +1,23 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
   User,
-  Trophy,
   Target,
   BookOpen,
-  Flame,
   Settings,
-  TrendingUp,
   Calendar
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
+import { ApiError } from "@/lib/api/client"
+import { getLoggedInUser } from "@/lib/auth"
+import { getUser } from "@/lib/api/users"
+import { getMyExplorations } from "@/lib/api/myExplorations"
+import { getRecords } from "@/lib/api/records"
+import type { UserProfile } from "@/lib/api/types"
 
 const hobbyCategories = [
   { name: "문화/예술", count: 4, color: "bg-chart-3" },
@@ -30,6 +35,26 @@ const monthlyActivity = [
 
 export function ProfileScreen() {
   const totalCategories = hobbyCategories.reduce((sum, cat) => sum + cat.count, 0)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [completedCount, setCompletedCount] = useState(0)
+  const [recordCount, setRecordCount] = useState(0)
+
+  useEffect(() => {
+    const loggedInUser = getLoggedInUser()
+    if (!loggedInUser) return
+
+    getUser(loggedInUser.userId)
+      .then(setProfile)
+      .catch((err) => {
+        toast.error(err instanceof ApiError ? err.message : "프로필 정보를 불러오지 못했어요.")
+      })
+    getMyExplorations({ status: "COMPLETED", page: 1, size: 1 })
+      .then(({ meta }) => setCompletedCount(meta.totalElements))
+      .catch(() => {})
+    getRecords({ page: 1, size: 1 })
+      .then(({ meta }) => setRecordCount(meta.totalElements))
+      .catch(() => {})
+  }, [])
 
   return (
     <div className="space-y-8">
@@ -45,80 +70,41 @@ export function ProfileScreen() {
       {/* Profile Card */}
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-start gap-6">
-            <div className="relative">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary/10 ring-4 ring-primary/20">
-                <User className="h-12 w-12 text-primary" />
-              </div>
-              <div className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground ring-2 ring-background">
-                Lv.5
-              </div>
+          <div className="flex items-center gap-6">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary/10 ring-4 ring-primary/20">
+              <User className="h-12 w-12 text-primary" />
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-bold text-foreground">탐험가 김하늘</h2>
-              <p className="mt-1 text-muted-foreground">새로운 취미를 찾아 떠나는 모험가</p>
-              
-              {/* XP Progress */}
-              <div className="mt-4">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium text-foreground">레벨 6까지</span>
-                  <span className="font-bold text-primary">320 / 500 XP</span>
-                </div>
-                <div className="mt-2 h-3 overflow-hidden rounded-full bg-muted">
-                  <div 
-                    className="h-full rounded-full bg-primary transition-all"
-                    style={{ width: "64%" }}
-                  />
-                </div>
-              </div>
-
-              {/* Quick Stats */}
-              <div className="mt-4 flex gap-6">
-                <div className="flex items-center gap-2">
-                  <Flame className="h-5 w-5 text-accent" />
-                  <span className="font-semibold text-foreground">7일</span>
-                  <span className="text-sm text-muted-foreground">연속</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-accent" />
-                  <span className="font-semibold text-foreground">12개</span>
-                  <span className="text-sm text-muted-foreground">퀘스트</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5 text-primary" />
-                  <span className="font-semibold text-foreground">8개</span>
-                  <span className="text-sm text-muted-foreground">기록</span>
-                </div>
-              </div>
+              <h2 className="text-xl font-bold text-foreground">
+                {profile ? profile.nickname : "로그인이 필요해요"}
+              </h2>
+              <p className="mt-1 text-muted-foreground">{profile?.email ?? ""}</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardContent className="p-4 text-center">
             <Target className="mx-auto h-8 w-8 text-primary" />
-            <p className="mt-2 text-2xl font-bold text-foreground">12</p>
-            <p className="text-sm text-muted-foreground">완료한 퀘스트</p>
+            <p className="mt-2 text-2xl font-bold text-foreground">{completedCount}</p>
+            <p className="text-sm text-muted-foreground">완료한 탐험</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <BookOpen className="mx-auto h-8 w-8 text-quest-success" />
-            <p className="mt-2 text-2xl font-bold text-foreground">8</p>
+            <p className="mt-2 text-2xl font-bold text-foreground">{recordCount}</p>
             <p className="text-sm text-muted-foreground">작성한 기록</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <TrendingUp className="mx-auto h-8 w-8 text-quest-progress" />
-            <p className="mt-2 text-2xl font-bold text-foreground">1,250</p>
-            <p className="text-sm text-muted-foreground">총 경험치</p>
-          </CardContent>
-        </Card>
       </div>
+
+      <p className="text-xs text-muted-foreground">
+        * 아래 취미 카테고리·월별 활동은 아직 예시 데이터예요, 나중에 실제 데이터로 교체할 예정이에요.
+      </p>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Hobby Categories */}

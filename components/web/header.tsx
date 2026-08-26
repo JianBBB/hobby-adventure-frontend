@@ -12,13 +12,14 @@ import { LogOut, User, ChevronDown } from "lucide-react"
 
 interface HeaderProps {
   isLoggedIn: boolean
+  nickname?: string
   onLogin: () => void
   onSignup: () => void
   onLogout: () => void
   onNavigateToProfile: () => void
 }
 
-export function Header({ isLoggedIn, onLogin, onSignup, onLogout, onNavigateToProfile }: HeaderProps) {
+export function Header({ isLoggedIn, nickname, onLogin, onSignup, onLogout, onNavigateToProfile }: HeaderProps) {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-end gap-4 border-b border-border bg-background/95 backdrop-blur px-8">
       {isLoggedIn ? (
@@ -28,7 +29,7 @@ export function Header({ isLoggedIn, onLogin, onSignup, onLogout, onNavigateToPr
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="gap-2 pl-2 pr-3">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
-                  김
+                  {nickname ? nickname.charAt(0) : "?"}
                 </div>
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </Button>

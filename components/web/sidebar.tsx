@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -8,22 +9,37 @@ import {
   Compass,
   FolderHeart,
   BookOpen,
-  Flame,
   Sparkles,
-  Zap,
-  Star,
   ChevronRight
 } from "lucide-react"
+import { getLoggedInUser, type LoggedInUser } from "@/lib/auth"
+import { getMyExplorations } from "@/lib/api/myExplorations"
 
 const navItems = [
   { path: "/", label: "홈", icon: Home },
   { path: "/explore", label: "탐험", icon: Compass },
-  { path: "/my-explorations", label: "내 탐험", icon: FolderHeart, badge: 3 },
+  { path: "/my-explorations", label: "내 탐험", icon: FolderHeart },
   { path: "/record", label: "탐험 기록", icon: BookOpen },
 ]
 
 export function Sidebar() {
   const pathname = usePathname()
+  const [user, setUser] = useState<LoggedInUser | null>(null)
+  const [startedCount, setStartedCount] = useState(0)
+  const [completedCount, setCompletedCount] = useState(0)
+
+  useEffect(() => {
+    const loggedInUser = getLoggedInUser()
+    setUser(loggedInUser)
+    if (!loggedInUser) return
+
+    getMyExplorations({ status: "STARTED", page: 1, size: 1 })
+      .then(({ meta }) => setStartedCount(meta.totalElements))
+      .catch(() => {})
+    getMyExplorations({ status: "COMPLETED", page: 1, size: 1 })
+      .then(({ meta }) => setCompletedCount(meta.totalElements))
+      .catch(() => {})
+  }, [pathname])
 
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-sidebar text-sidebar-foreground">
@@ -47,49 +63,22 @@ export function Sidebar() {
           href="/profile"
           className="block w-full rounded-2xl bg-gradient-to-br from-sidebar-accent/80 to-sidebar-accent/40 p-4 border border-sidebar-border hover:border-primary/30 transition-all group cursor-pointer text-left"
         >
-          {/* User Avatar & Level */}
-          <div className="flex items-center gap-4 mb-4">
-            <div className="relative">
-              <div className="h-14 w-14 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center ring-4 ring-primary/30 shadow-lg shadow-primary/20 group-hover:ring-primary/50 transition-all">
-                <span className="text-lg font-bold text-primary-foreground">Lv.5</span>
-              </div>
-              <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-highlight text-highlight-foreground shadow-lg">
-                <Star className="h-3.5 w-3.5" />
-              </div>
+          {/* User Avatar */}
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 ring-4 ring-primary/30 shadow-lg shadow-primary/20 group-hover:ring-primary/50 transition-all">
+              <Compass className="h-6 w-6 text-primary-foreground" />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <p className="font-bold text-sidebar-foreground text-base">탐험가 김하늘</p>
+                <p className="font-bold text-sidebar-foreground text-base">
+                  {user ? user.nickname : "게스트"}
+                </p>
                 <ChevronRight className="h-4 w-4 text-sidebar-foreground/40 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
               </div>
-              <p className="text-xs text-sidebar-foreground/60 mt-0.5">견습 탐험가</p>
+              <p className="text-xs text-sidebar-foreground/60 mt-0.5">
+                {user ? "탐험가" : "로그인이 필요해요"}
+              </p>
             </div>
-          </div>
-
-          {/* XP Progress Bar */}
-          <div className="mb-3">
-            <div className="flex items-center justify-between mb-1.5">
-              <div className="flex items-center gap-1.5">
-                <Zap className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-medium text-sidebar-foreground/70">경험치</span>
-              </div>
-              <span className="text-xs font-bold text-primary">320 / 500 XP</span>
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-sidebar-border/50">
-              <div 
-                className="h-full rounded-full bg-gradient-to-r from-primary to-primary/80"
-                style={{ width: "64%" }}
-              />
-            </div>
-          </div>
-
-          {/* Streak */}
-          <div className="flex items-center justify-between rounded-lg bg-accent/10 px-3 py-2">
-            <div className="flex items-center gap-2">
-              <Flame className="h-4 w-4 text-accent" />
-              <span className="text-xs text-sidebar-foreground/70">연속 탐험</span>
-            </div>
-            <span className="text-sm font-bold text-accent">7일</span>
           </div>
         </Link>
       </div>
@@ -113,14 +102,14 @@ export function Sidebar() {
                 >
                   <Icon className="h-5 w-5" />
                   <span>{item.label}</span>
-                  {item.badge && (
+                  {item.path === "/my-explorations" && startedCount > 0 && (
                     <span className={cn(
                       "ml-auto flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-xs font-bold",
                       isActive
                         ? "bg-accent-foreground/20 text-accent-foreground"
                         : "bg-accent/20 text-accent"
                     )}>
-                      {item.badge}
+                      {startedCount}
                     </span>
                   )}
                 </Link>
@@ -132,15 +121,9 @@ export function Sidebar() {
 
       {/* Quick Stats */}
       <div className="border-t border-sidebar-border px-4 py-4">
-        <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-xl bg-sidebar-accent/50 p-3 text-center">
-            <p className="text-lg font-bold text-sidebar-foreground">12</p>
-            <p className="text-xs text-sidebar-foreground/60">탐험 완료</p>
-          </div>
-          <div className="rounded-xl bg-sidebar-accent/50 p-3 text-center">
-            <p className="text-lg font-bold text-highlight">5</p>
-            <p className="text-xs text-sidebar-foreground/60">탐험 장소</p>
-          </div>
+        <div className="rounded-xl bg-sidebar-accent/50 p-3 text-center">
+          <p className="text-lg font-bold text-sidebar-foreground">{completedCount}</p>
+          <p className="text-xs text-sidebar-foreground/60">완료한 탐험</p>
         </div>
       </div>
     </aside>
