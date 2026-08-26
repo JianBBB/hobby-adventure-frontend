@@ -1,5 +1,7 @@
 "use client"
 
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
   Home,
@@ -13,19 +15,16 @@ import {
   ChevronRight
 } from "lucide-react"
 
-interface SidebarProps {
-  activeTab: string
-  onTabChange: (tab: string) => void
-}
-
 const navItems = [
-  { id: "home", label: "홈", icon: Home },
-  { id: "explore", label: "탐험", icon: Compass },
-  { id: "my-explorations", label: "내 탐험", icon: FolderHeart, badge: 3 },
-  { id: "record", label: "탐험 기록", icon: BookOpen },
+  { path: "/", label: "홈", icon: Home },
+  { path: "/explore", label: "탐험", icon: Compass },
+  { path: "/my-explorations", label: "내 탐험", icon: FolderHeart, badge: 3 },
+  { path: "/record", label: "탐험 기록", icon: BookOpen },
 ]
 
-export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
+export function Sidebar() {
+  const pathname = usePathname()
+
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-sidebar text-sidebar-foreground">
       {/* Logo */}
@@ -44,9 +43,9 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
 
       {/* Explorer Card - Clickable to Profile */}
       <div className="border-b border-sidebar-border px-4 py-5">
-        <button
-          onClick={() => onTabChange("profile")}
-          className="w-full rounded-2xl bg-gradient-to-br from-sidebar-accent/80 to-sidebar-accent/40 p-4 border border-sidebar-border hover:border-primary/30 transition-all group cursor-pointer text-left"
+        <Link
+          href="/profile"
+          className="block w-full rounded-2xl bg-gradient-to-br from-sidebar-accent/80 to-sidebar-accent/40 p-4 border border-sidebar-border hover:border-primary/30 transition-all group cursor-pointer text-left"
         >
           {/* User Avatar & Level */}
           <div className="flex items-center gap-4 mb-4">
@@ -92,7 +91,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
             </div>
             <span className="text-sm font-bold text-accent">7일</span>
           </div>
-        </button>
+        </Link>
       </div>
 
       {/* Navigation */}
@@ -100,11 +99,11 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         <ul className="space-y-1.5">
           {navItems.map((item) => {
             const Icon = item.icon
-            const isActive = activeTab === item.id
+            const isActive = pathname === item.path
             return (
-              <li key={item.id}>
-                <button
-                  onClick={() => onTabChange(item.id)}
+              <li key={item.path}>
+                <Link
+                  href={item.path}
                   className={cn(
                     "flex w-full items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-medium transition-all duration-200",
                     isActive
@@ -117,14 +116,14 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
                   {item.badge && (
                     <span className={cn(
                       "ml-auto flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-xs font-bold",
-                      isActive 
-                        ? "bg-accent-foreground/20 text-accent-foreground" 
+                      isActive
+                        ? "bg-accent-foreground/20 text-accent-foreground"
                         : "bg-accent/20 text-accent"
                     )}>
                       {item.badge}
                     </span>
                   )}
-                </button>
+                </Link>
               </li>
             )
           })}

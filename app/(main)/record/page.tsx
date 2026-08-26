@@ -1,0 +1,10 @@
+"use client"
+
+import { RecordScreen } from "@/components/web/screens/record-screen"
+import { useAppNavigation } from "@/lib/app-navigation-context"
+
+export default function RecordPage() {
+  const { onWriteRecord } = useAppNavigation()
+
+  return <RecordScreen onNewRecord={onWriteRecord} />
+}
