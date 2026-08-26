@@ -123,7 +123,7 @@ export default function HobbyQuestApp() {
       case "profile":
         return <ProfileScreen />
       default:
-        return <HomeScreen onExplorationSelect={handleExplorationSelect} />
+        return <HomeScreen onExplorationSelect={handleExplorationSelect} onContinueExploration={handleContinueExploration} />
     }
   }
 
