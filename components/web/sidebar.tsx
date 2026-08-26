@@ -12,7 +12,7 @@ import {
   Sparkles,
   ChevronRight
 } from "lucide-react"
-import { getLoggedInUser, type LoggedInUser } from "@/lib/auth"
+import type { LoggedInUser } from "@/lib/auth"
 import { getMyExplorations } from "@/lib/api/myExplorations"
 
 const navItems = [
@@ -22,16 +22,21 @@ const navItems = [
   { path: "/record", label: "탐험 기록", icon: BookOpen },
 ]
 
-export function Sidebar() {
+interface SidebarProps {
+  user: LoggedInUser | null
+}
+
+export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname()
-  const [user, setUser] = useState<LoggedInUser | null>(null)
   const [startedCount, setStartedCount] = useState(0)
   const [completedCount, setCompletedCount] = useState(0)
 
   useEffect(() => {
-    const loggedInUser = getLoggedInUser()
-    setUser(loggedInUser)
-    if (!loggedInUser) return
+    if (!user) {
+      setStartedCount(0)
+      setCompletedCount(0)
+      return
+    }
 
     getMyExplorations({ status: "STARTED", page: 1, size: 1 })
       .then(({ meta }) => setStartedCount(meta.totalElements))
@@ -39,7 +44,7 @@ export function Sidebar() {
     getMyExplorations({ status: "COMPLETED", page: 1, size: 1 })
       .then(({ meta }) => setCompletedCount(meta.totalElements))
       .catch(() => {})
-  }, [pathname])
+  }, [user, pathname])
 
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-sidebar text-sidebar-foreground">

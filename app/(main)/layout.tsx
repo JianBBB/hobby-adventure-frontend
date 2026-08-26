@@ -92,7 +92,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           />
         )}
 
-        <Sidebar />
+        <Sidebar user={user} />
 
         <main className="ml-64 min-h-screen">
           <Header
