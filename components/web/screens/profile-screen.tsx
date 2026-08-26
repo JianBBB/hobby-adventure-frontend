@@ -136,7 +136,7 @@ export function ProfileScreen() {
         {/* Monthly Activity */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">���별 활동</CardTitle>
+            <CardTitle className="text-base">월별 활동</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
