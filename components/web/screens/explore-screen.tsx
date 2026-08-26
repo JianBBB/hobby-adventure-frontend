@@ -93,6 +93,9 @@ export function ExploreScreen({ onExplorationSelect }: ExploreScreenProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [explorations, setExplorations] = useState<ExplorationListItem[]>([])
   const [explorationsLoading, setExplorationsLoading] = useState(true)
+  const [page, setPage] = useState(1)
+  const [hasNext, setHasNext] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
 
   useEffect(() => {
     setCategoriesLoading(true)
@@ -104,15 +107,35 @@ export function ExploreScreen({ onExplorationSelect }: ExploreScreenProps) {
       .finally(() => setCategoriesLoading(false))
   }, [])
 
+  // 카테고리가 바뀌면 1페이지부터 새로 불러옴
   useEffect(() => {
     setExplorationsLoading(true)
     getExplorations({ categoryId: selectedCategoryId ?? undefined, page: 1, size: 20 })
-      .then(({ items }) => setExplorations(items))
+      .then(({ items, meta }) => {
+        setExplorations(items)
+        setPage(1)
+        setHasNext(meta.hasNext)
+      })
       .catch((err) => {
         toast.error(err instanceof ApiError ? err.message : "탐험 목록을 불러오지 못했어요.")
       })
       .finally(() => setExplorationsLoading(false))
   }, [selectedCategoryId])
+
+  const handleLoadMore = () => {
+    const nextPage = page + 1
+    setLoadingMore(true)
+    getExplorations({ categoryId: selectedCategoryId ?? undefined, page: nextPage, size: 20 })
+      .then(({ items, meta }) => {
+        setExplorations((prev) => [...prev, ...items])
+        setPage(nextPage)
+        setHasNext(meta.hasNext)
+      })
+      .catch((err) => {
+        toast.error(err instanceof ApiError ? err.message : "탐험 목록을 더 불러오지 못했어요.")
+      })
+      .finally(() => setLoadingMore(false))
+  }
 
   // 검색어는 프론트에서만 필터링(백엔드에 검색 파라미터 없음, 나중에 추가 예정)
   const filteredExplorations = explorations.filter((exploration) => {
@@ -233,6 +256,14 @@ export function ExploreScreen({ onExplorationSelect }: ExploreScreenProps) {
               </p>
             </CardContent>
           </Card>
+        )}
+
+        {!explorationsLoading && hasNext && (
+          <div className="mt-6 flex justify-center">
+            <Button variant="outline" onClick={handleLoadMore} disabled={loadingMore}>
+              {loadingMore ? "불러오는 중..." : "더보기"}
+            </Button>
+          </div>
         )}
       </div>
     </div>
