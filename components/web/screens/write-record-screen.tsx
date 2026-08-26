@@ -5,13 +5,12 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { 
+import {
   ArrowLeft,
   MapPin,
   Star,
   Camera,
-  CheckCircle2,
-  Search
+  CheckCircle2
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -35,18 +34,6 @@ const emotions = [
   { value: "disappointed", label: "아쉬움", emoji: "😔" },
 ]
 
-// Location suggestions
-const locationSuggestions = [
-  "홍대입구역 근처",
-  "강남역 근처", 
-  "이태원",
-  "연남동",
-  "성수동",
-  "망원동",
-  "을지로",
-  "북촌",
-]
-
 export function WriteRecordScreen({
   explorationId,
   explorationName,
@@ -66,9 +53,7 @@ export function WriteRecordScreen({
   const [selectedEmotion, setSelectedEmotion] = useState("")
   const [note, setNote] = useState("")
   const [location, setLocation] = useState("")
-  const [locationMode, setLocationMode] = useState<"input" | "search" | null>(null)
-  const [showSuggestions, setShowSuggestions] = useState(false)
-  const [locationSearchQuery, setLocationSearchQuery] = useState("")
+  const [locationInput, setLocationInput] = useState("")
   const [isSaving, setIsSaving] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
 
@@ -226,90 +211,27 @@ export function WriteRecordScreen({
           <h3 className="font-bold text-foreground mb-2">어디서 탐험했나요?</h3>
           <p className="text-sm text-muted-foreground mb-4">선택 사항이에요. 탐험 지도에 표시됩니다.</p>
           
-          {!locationMode && !location && (
-            <div className="flex gap-3">
-              <Button 
-                variant="outline" 
-                className="flex-1 gap-2"
-                onClick={() => setLocationMode("input")}
-              >
-                <MapPin className="h-4 w-4" />
-                직접 입력
-              </Button>
-              <Button 
-                variant="outline" 
-                className="flex-1 gap-2"
-                onClick={() => {
-                  setLocationMode("search")
-                  setShowSuggestions(true)
-                }}
-              >
-                <Search className="h-4 w-4" />
-                장소 검색
-              </Button>
-            </div>
-          )}
-
-          {locationMode === "input" && !location && (
-            <div className="space-y-3">
+          {!location && (
+            <div className="flex gap-2">
               <Input
                 placeholder="예: 홍대 재즈바, 강남 클라이밍센터"
+                value={locationInput}
+                onChange={(e) => setLocationInput(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && e.currentTarget.value) {
-                    setLocation(e.currentTarget.value)
-                    setLocationMode(null)
+                  if (e.key === "Enter" && locationInput.trim()) {
+                    setLocation(locationInput.trim())
+                    setLocationInput("")
                   }
                 }}
-                autoFocus
               />
-              <div className="flex gap-2">
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setLocationMode(null)}
-                >
-                  취소
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {locationMode === "search" && showSuggestions && !location && (
-            <div className="space-y-3">
-              <Input
-                placeholder="장소 검색..."
-                value={locationSearchQuery}
-                onChange={(e) => setLocationSearchQuery(e.target.value)}
-                autoFocus
-              />
-              <div className="flex flex-wrap gap-2">
-                {locationSuggestions
-                  .filter((suggestion) => suggestion.includes(locationSearchQuery))
-                  .map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    onClick={() => {
-                      setLocation(suggestion)
-                      setLocationMode(null)
-                      setShowSuggestions(false)
-                      setLocationSearchQuery("")
-                    }}
-                    className="px-3 py-1.5 rounded-full border border-border text-sm hover:border-primary/30 hover:bg-muted/30 transition-colors"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
               <Button
-                variant="ghost"
-                size="sm"
+                disabled={!locationInput.trim()}
                 onClick={() => {
-                  setLocationMode(null)
-                  setShowSuggestions(false)
-                  setLocationSearchQuery("")
+                  setLocation(locationInput.trim())
+                  setLocationInput("")
                 }}
               >
-                취소
+                추가
               </Button>
             </div>
           )}
@@ -320,13 +242,10 @@ export function WriteRecordScreen({
                 <MapPin className="h-4 w-4 text-primary" />
                 <span className="font-medium text-foreground">{location}</span>
               </div>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
-                onClick={() => {
-                  setLocation("")
-                  setLocationMode(null)
-                }}
+                onClick={() => setLocation("")}
               >
                 변경
               </Button>
