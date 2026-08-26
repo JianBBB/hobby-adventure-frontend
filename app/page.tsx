@@ -11,6 +11,7 @@ import { ProfileScreen } from "@/components/web/screens/profile-screen"
 import { ExplorationDetailScreen } from "@/components/web/screens/exploration-detail-screen"
 import { ExplorationIntroScreen } from "@/components/web/screens/exploration-intro-screen"
 import { WriteRecordScreen } from "@/components/web/screens/write-record-screen"
+import { AuthScreen } from "@/components/web/screens/auth-screen"
 
 interface WriteRecordData {
   explorationId: string
@@ -23,6 +24,7 @@ interface WriteRecordData {
 export default function HobbyQuestApp() {
   const [activeTab, setActiveTab] = useState("home")
   const [isLoggedIn, setIsLoggedIn] = useState(true) // Demo: logged in state
+  const [authMode, setAuthMode] = useState<"login" | "signup" | null>(null)
   const [selectedExplorationId, setSelectedExplorationId] = useState<string | null>(null)
   const [selectedExplorationForProgress, setSelectedExplorationForProgress] = useState<string | null>(null)
   const [writeRecordData, setWriteRecordData] = useState<WriteRecordData | null>(null)
@@ -131,12 +133,26 @@ export default function HobbyQuestApp() {
       {/* Sidebar */}
       <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
       
+      {/* Auth (login/signup) overlay */}
+      {authMode && (
+        <AuthScreen
+          mode={authMode}
+          onModeChange={setAuthMode}
+          onClose={() => setAuthMode(null)}
+          onSuccess={() => {
+            setIsLoggedIn(true)
+            setAuthMode(null)
+          }}
+        />
+      )}
+
       {/* Main Content */}
       <main className="ml-64 min-h-screen">
         {/* Header */}
         <Header
           isLoggedIn={isLoggedIn}
-          onLogin={() => setIsLoggedIn(true)}
+          onLogin={() => setAuthMode("login")}
+          onSignup={() => setAuthMode("signup")}
           onLogout={() => setIsLoggedIn(false)}
           onNavigateToProfile={() => handleTabChange("profile")}
         />

@@ -13,11 +13,12 @@ import { LogOut, User, ChevronDown } from "lucide-react"
 interface HeaderProps {
   isLoggedIn: boolean
   onLogin: () => void
+  onSignup: () => void
   onLogout: () => void
   onNavigateToProfile: () => void
 }
 
-export function Header({ isLoggedIn, onLogin, onLogout, onNavigateToProfile }: HeaderProps) {
+export function Header({ isLoggedIn, onLogin, onSignup, onLogout, onNavigateToProfile }: HeaderProps) {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-end gap-4 border-b border-border bg-background/95 backdrop-blur px-8">
       {isLoggedIn ? (
@@ -50,7 +51,7 @@ export function Header({ isLoggedIn, onLogin, onLogout, onNavigateToProfile }: H
           <Button variant="ghost" onClick={onLogin}>
             로그인
           </Button>
-          <Button onClick={onLogin}>
+          <Button onClick={onSignup}>
             회원가입
           </Button>
         </>
