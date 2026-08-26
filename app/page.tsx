@@ -65,6 +65,13 @@ export default function HobbyQuestApp() {
     setActiveTab("record")
   }
 
+  const handleTabChange = (tab: string) => {
+    setSelectedExplorationId(null)
+    setSelectedExplorationForProgress(null)
+    setWriteRecordData(null)
+    setActiveTab(tab)
+  }
+
   const renderScreen = () => {
     // If writing a record, show the write record screen
     if (writeRecordData) {
@@ -123,7 +130,7 @@ export default function HobbyQuestApp() {
   return (
     <div className="min-h-screen bg-background">
       {/* Sidebar */}
-      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+      <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
       
       {/* Main Content */}
       <main className="ml-64 min-h-screen">
