@@ -214,15 +214,9 @@ export function ExploreScreen({ onExplorationSelect }: ExploreScreenProps) {
 
       {/* Explorations Grid */}
       <div>
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-accent" />
-            <h2 className="text-lg font-bold text-foreground">둘러보기</h2>
-          </div>
-          <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground">
-            더보기
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+        <div className="mb-4 flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-accent" />
+          <h2 className="text-lg font-bold text-foreground">둘러보기</h2>
         </div>
         
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

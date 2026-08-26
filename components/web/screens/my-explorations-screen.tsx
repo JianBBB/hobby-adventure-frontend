@@ -4,12 +4,11 @@ import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
+import {
   Play,
   CheckCircle2,
   Clock,
   MapPin,
-  MoreHorizontal,
   ChevronRight
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -125,9 +124,6 @@ function ExplorationCard({
               <p className="text-sm text-muted-foreground">{exploration.description}</p>
             </div>
           </div>
-          <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
         </div>
         
         {isInProgress && 'progress' in exploration && (

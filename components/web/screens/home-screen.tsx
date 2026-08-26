@@ -63,9 +63,10 @@ const inProgressExplorations = [
 interface HomeScreenProps {
   onExplorationSelect?: (id: string) => void
   onContinueExploration?: (id: string) => void
+  onNavigateToMyExplorations?: () => void
 }
 
-export function HomeScreen({ onExplorationSelect, onContinueExploration }: HomeScreenProps) {
+export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavigateToMyExplorations }: HomeScreenProps) {
   const [randomQuest, setRandomQuest] = useState(allRandomQuests[0])
   const [isShuffling, setIsShuffling] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -169,7 +170,12 @@ export function HomeScreen({ onExplorationSelect, onContinueExploration }: HomeS
                 <p className="text-sm text-muted-foreground">이어서 탐험해보세요</p>
               </div>
             </div>
-            <Button variant="ghost" size="sm" className="gap-1 text-primary hover:text-primary/80">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1 text-primary hover:text-primary/80"
+              onClick={onNavigateToMyExplorations}
+            >
               전체보기
               <ChevronRight className="h-4 w-4" />
             </Button>

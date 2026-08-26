@@ -112,7 +112,7 @@ export default function HobbyQuestApp() {
 
     switch (activeTab) {
       case "home":
-        return <HomeScreen onExplorationSelect={handleExplorationSelect} onContinueExploration={handleContinueExploration} />
+        return <HomeScreen onExplorationSelect={handleExplorationSelect} onContinueExploration={handleContinueExploration} onNavigateToMyExplorations={() => handleTabChange("my-explorations")} />
       case "explore":
         return <ExploreScreen onExplorationSelect={handleExplorationSelect} />
       case "my-explorations":
@@ -122,7 +122,7 @@ export default function HobbyQuestApp() {
       case "profile":
         return <ProfileScreen />
       default:
-        return <HomeScreen onExplorationSelect={handleExplorationSelect} onContinueExploration={handleContinueExploration} />
+        return <HomeScreen onExplorationSelect={handleExplorationSelect} onContinueExploration={handleContinueExploration} onNavigateToMyExplorations={() => handleTabChange("my-explorations")} />
     }
   }
 

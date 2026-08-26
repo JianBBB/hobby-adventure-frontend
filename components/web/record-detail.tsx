@@ -65,6 +65,12 @@ export function RecordDetail({
   hasPrev = false,
   hasNext = false
 }: RecordDetailProps) {
+  const handleShare = () => {
+    const text = `[${record.hobbyName}] ${record.date}\n${record.note}`
+    navigator.clipboard.writeText(text)
+    alert("기록 내용을 클립보드에 복사했어요.")
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 backdrop-blur-sm">
       <div className="relative mx-4 w-full max-w-2xl">
@@ -101,7 +107,7 @@ export function RecordDetail({
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="text-muted-foreground">
+              <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={handleShare}>
                 <Share2 className="h-5 w-5" />
               </Button>
               <Button variant="ghost" size="icon" className="text-muted-foreground">
