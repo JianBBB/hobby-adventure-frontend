@@ -13,7 +13,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-const records = [
+const initialRecords = [
   {
     hobbyName: "도자기 공예",
     date: "2026년 3월 8일",
@@ -92,16 +92,16 @@ const records = [
 ]
 
 // Generate heatmap data for 2026
-const generateHeatmapData = () => {
+const generateHeatmapData = (records: typeof initialRecords) => {
   const data: { date: string; count: number }[] = []
   const startDate = new Date(2026, 0, 1)
   const endDate = new Date(2026, 2, 31) // Up to March
-  
+
   for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
     const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-    const recordsOnDay = records.filter(r => 
-      r.year === d.getFullYear() && 
-      r.month === d.getMonth() + 1 && 
+    const recordsOnDay = records.filter(r =>
+      r.year === d.getFullYear() &&
+      r.month === d.getMonth() + 1 &&
       r.day === d.getDate()
     ).length
     data.push({ date: dateStr, count: recordsOnDay })
@@ -109,22 +109,9 @@ const generateHeatmapData = () => {
   return data
 }
 
-const heatmapData = generateHeatmapData()
-
-// Group records by year and month
-const archiveData = records.reduce((acc, record) => {
-  const yearKey = record.year.toString()
-  const monthKey = `${record.month}월`
-  
-  if (!acc[yearKey]) acc[yearKey] = {}
-  if (!acc[yearKey][monthKey]) acc[yearKey][monthKey] = []
-  acc[yearKey][monthKey].push(record)
-  
-  return acc
-}, {} as Record<string, Record<string, typeof records>>)
-
 // Activity Heatmap Component
-function ActivityHeatmap() {
+function ActivityHeatmap({ records }: { records: typeof initialRecords }) {
+  const heatmapData = generateHeatmapData(records)
   const weeks: { date: string; count: number }[][] = []
   let currentWeek: { date: string; count: number }[] = []
   
@@ -234,9 +221,30 @@ interface RecordScreenProps {
 }
 
 export function RecordScreen({ onNewRecord }: RecordScreenProps) {
+  const [records, setRecords] = useState(initialRecords)
   const [selectedRecordIndex, setSelectedRecordIndex] = useState<number | null>(null)
   const [expandedYears, setExpandedYears] = useState<Record<string, boolean>>({ '2026': true })
   const [selectedMonth, setSelectedMonth] = useState<string | null>('2026-3')
+
+  // Group records by year and month
+  const archiveData = records.reduce((acc, record) => {
+    const yearKey = record.year.toString()
+    const monthKey = `${record.month}월`
+
+    if (!acc[yearKey]) acc[yearKey] = {}
+    if (!acc[yearKey][monthKey]) acc[yearKey][monthKey] = []
+    acc[yearKey][monthKey].push(record)
+
+    return acc
+  }, {} as Record<string, Record<string, typeof records>>)
+
+  const handleDeleteRecord = () => {
+    if (selectedRecordIndex === null) return
+    const confirmed = window.confirm("이 기록을 삭제할까요? 되돌릴 수 없어요.")
+    if (!confirmed) return
+    setRecords(prev => prev.filter((_, i) => i !== selectedRecordIndex))
+    setSelectedRecordIndex(null)
+  }
 
   const handleNewRecord = () => {
     if (onNewRecord) {
@@ -285,6 +293,7 @@ export function RecordScreen({ onNewRecord }: RecordScreenProps) {
           onClose={() => setSelectedRecordIndex(null)}
           onPrev={handlePrevRecord}
           onNext={handleNextRecord}
+          onDelete={handleDeleteRecord}
           hasPrev={selectedRecordIndex > 0}
           hasNext={selectedRecordIndex < records.length - 1}
         />
@@ -303,7 +312,7 @@ export function RecordScreen({ onNewRecord }: RecordScreenProps) {
       </div>
 
       {/* Activity Heatmap */}
-      <ActivityHeatmap />
+      <ActivityHeatmap records={records} />
 
       
 

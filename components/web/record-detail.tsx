@@ -33,6 +33,7 @@ interface RecordDetailProps {
   onClose: () => void
   onPrev?: () => void
   onNext?: () => void
+  onDelete?: () => void
   hasPrev?: boolean
   hasNext?: boolean
 }
@@ -60,6 +61,7 @@ export function RecordDetail({
   onClose,
   onPrev,
   onNext,
+  onDelete,
   hasPrev = false,
   hasNext = false
 }: RecordDetailProps) {
@@ -204,7 +206,11 @@ export function RecordDetail({
 
             {/* Actions */}
             <div className="flex items-center justify-between border-t pt-6">
-              <Button variant="outline" className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive">
+              <Button
+                variant="outline"
+                className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={onDelete}
+              >
                 <Trash2 className="h-4 w-4" />
                 삭제
               </Button>
