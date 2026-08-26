@@ -226,6 +226,7 @@ interface WriteRecordData {
   explorationName: string
   explorationIcon: string
   explorationCategory: string
+  isNewRecord: boolean
 }
 
 interface RecordScreenProps {
@@ -240,10 +241,11 @@ export function RecordScreen({ onNewRecord }: RecordScreenProps) {
   const handleNewRecord = () => {
     if (onNewRecord) {
       onNewRecord({
-        explorationId: "new",
+        explorationId: "",
         explorationName: "",
         explorationIcon: "",
-        explorationCategory: ""
+        explorationCategory: "",
+        isNewRecord: true
       })
     }
   }

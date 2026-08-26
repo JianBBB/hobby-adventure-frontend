@@ -18,6 +18,7 @@ interface WriteRecordData {
   explorationName: string
   explorationIcon: string
   explorationCategory: string
+  isNewRecord: boolean
 }
 
 export default function HobbyQuestApp() {
@@ -81,6 +82,7 @@ export default function HobbyQuestApp() {
           explorationName={writeRecordData.explorationName}
           explorationIcon={writeRecordData.explorationIcon}
           explorationCategory={writeRecordData.explorationCategory}
+          isNewRecord={writeRecordData.isNewRecord}
           onBack={handleWriteRecordBack}
           onSave={handleWriteRecordSave}
         />

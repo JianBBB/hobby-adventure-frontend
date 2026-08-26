@@ -20,6 +20,7 @@ interface WriteRecordScreenProps {
   explorationName: string
   explorationIcon: string
   explorationCategory: string
+  isNewRecord: boolean
   onBack: () => void
   onSave: () => void
 }
@@ -51,15 +52,14 @@ export function WriteRecordScreen({
   explorationName,
   explorationIcon,
   explorationCategory,
+  isNewRecord,
   onBack,
   onSave
 }: WriteRecordScreenProps) {
   // Default to today's date
   const today = new Date()
   const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-  
-  const isNewRecord = explorationId === "new"
-  
+
   const [recordName, setRecordName] = useState(explorationName)
   const [recordDate, setRecordDate] = useState(todayString)
   const [rating, setRating] = useState(0)

@@ -193,6 +193,7 @@ interface WriteRecordData {
   explorationName: string
   explorationIcon: string
   explorationCategory: string
+  isNewRecord: boolean
 }
 
 interface ExplorationDetailScreenProps {
@@ -260,7 +261,8 @@ export function ExplorationDetailScreen({
         explorationId: exploration.id,
         explorationName: exploration.name,
         explorationIcon: exploration.icon,
-        explorationCategory: exploration.category
+        explorationCategory: exploration.category,
+        isNewRecord: false
       })
     }
   }
