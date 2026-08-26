@@ -55,6 +55,9 @@ export function ExplorationDetailScreen({
   }, [userExplorationId])
 
   const handleComplete = () => {
+    const confirmed = window.confirm("탐험을 완료할까요? 완료 후에는 되돌릴 수 없어요.")
+    if (!confirmed) return
+
     setCompleting(true)
     completeMyExploration(Number(userExplorationId))
       .then(() => {
