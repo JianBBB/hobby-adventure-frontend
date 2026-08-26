@@ -6,7 +6,6 @@ import { Header } from "@/components/web/header"
 import { HomeScreen } from "@/components/web/screens/home-screen"
 import { ExploreScreen } from "@/components/web/screens/explore-screen"
 import { MyExplorationsScreen } from "@/components/web/screens/my-explorations-screen"
-import { MapScreen } from "@/components/web/screens/map-screen"
 import { RecordScreen } from "@/components/web/screens/record-screen"
 import { ProfileScreen } from "@/components/web/screens/profile-screen"
 import { ExplorationDetailScreen } from "@/components/web/screens/exploration-detail-screen"
@@ -118,8 +117,6 @@ export default function HobbyQuestApp() {
         return <ExploreScreen onExplorationSelect={handleExplorationSelect} />
       case "my-explorations":
         return <MyExplorationsScreen onExplorationSelect={handleContinueExploration} />
-      case "map":
-        return <MapScreen />
       case "record":
         return <RecordScreen onNewRecord={handleWriteRecord} />
       case "profile":

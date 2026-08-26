@@ -1,16 +1,15 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { 
-  Home, 
-  Compass, 
+import {
+  Home,
+  Compass,
   FolderHeart,
-  BookOpen, 
+  BookOpen,
   Flame,
   Sparkles,
   Zap,
   Star,
-  Map,
   ChevronRight
 } from "lucide-react"
 
@@ -23,7 +22,6 @@ const navItems = [
   { id: "home", label: "홈", icon: Home },
   { id: "explore", label: "탐험", icon: Compass },
   { id: "my-explorations", label: "내 탐험", icon: FolderHeart, badge: 3 },
-  { id: "map", label: "탐험 지도", icon: Map },
   { id: "record", label: "탐험 기록", icon: BookOpen },
 ]
 

@@ -1,32 +1,18 @@
 "use client"
 
-import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { AchievementDetail } from "@/components/web/achievement-detail"
-import { 
+import {
   User,
   Trophy,
   Target,
   BookOpen,
   Flame,
-  Star,
   Settings,
-  ChevronRight,
   TrendingUp,
-  Award,
   Calendar
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-const achievements = [
-  { id: 1, name: "첫 퀘스트 완료", description: "첫 번째 퀘스트를 완료했습니다", icon: "🎯", unlocked: true },
-  { id: 2, name: "탐험가", description: "5개의 서로 다른 취미를 시도했습니다", icon: "🧭", unlocked: true },
-  { id: 3, name: "꾸준함의 달인", description: "7일 연속 활동했습니다", icon: "🔥", unlocked: true },
-  { id: 4, name: "기록왕", description: "10개 이상의 기록을 작성했습니다", icon: "📝", unlocked: false },
-  { id: 5, name: "도전자", description: "어려움 난이도 퀘스트를 완료했습니다", icon: "💪", unlocked: true },
-  { id: 6, name: "예술가", description: "예술 카테고리 퀘스트 3개 완료", icon: "🎨", unlocked: false },
-]
 
 const hobbyCategories = [
   { name: "문화/예술", count: 4, color: "bg-chart-3" },
@@ -42,22 +28,11 @@ const monthlyActivity = [
   { month: "3월", quests: 4, records: 5 },
 ]
 
-type AchievementType = typeof achievements[0]
-
 export function ProfileScreen() {
-  const [selectedAchievement, setSelectedAchievement] = useState<AchievementType | null>(null)
   const totalCategories = hobbyCategories.reduce((sum, cat) => sum + cat.count, 0)
 
   return (
     <div className="space-y-8">
-      {/* Achievement Detail Modal */}
-      {selectedAchievement && (
-        <AchievementDetail 
-          achievement={selectedAchievement}
-          onClose={() => setSelectedAchievement(null)}
-        />
-      )}
-
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">프로필</h1>
@@ -121,7 +96,7 @@ export function ProfileScreen() {
       </Card>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardContent className="p-4 text-center">
             <Target className="mx-auto h-8 w-8 text-primary" />
@@ -134,13 +109,6 @@ export function ProfileScreen() {
             <BookOpen className="mx-auto h-8 w-8 text-quest-success" />
             <p className="mt-2 text-2xl font-bold text-foreground">8</p>
             <p className="text-sm text-muted-foreground">작성한 기록</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Award className="mx-auto h-8 w-8 text-accent" />
-            <p className="mt-2 text-2xl font-bold text-foreground">4</p>
-            <p className="text-sm text-muted-foreground">획득한 뱃지</p>
           </CardContent>
         </Card>
         <Card>
@@ -208,51 +176,6 @@ export function ProfileScreen() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Achievements */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">업적</CardTitle>
-          <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground">
-            전체보기
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {achievements.map((achievement) => (
-              <div
-                key={achievement.id}
-                onClick={() => setSelectedAchievement(achievement)}
-                className={cn(
-                  "flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-all hover:shadow-md",
-                  achievement.unlocked
-                    ? "border-primary/20 bg-primary/5 hover:border-primary/40"
-                    : "border-border bg-secondary/30 opacity-50 hover:opacity-70"
-                )}
-              >
-                <div className={cn(
-                  "flex h-12 w-12 items-center justify-center rounded-xl text-2xl",
-                  achievement.unlocked ? "bg-primary/10" : "bg-muted grayscale"
-                )}>
-                  {achievement.icon}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="truncate text-sm font-semibold text-foreground">
-                    {achievement.name}
-                  </h4>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {achievement.description}
-                  </p>
-                </div>
-                {achievement.unlocked && (
-                  <Star className="h-4 w-4 shrink-0 fill-accent text-accent" />
-                )}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }
