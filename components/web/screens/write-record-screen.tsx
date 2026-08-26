@@ -68,6 +68,7 @@ export function WriteRecordScreen({
   const [location, setLocation] = useState("")
   const [locationMode, setLocationMode] = useState<"input" | "search" | null>(null)
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [locationSearchQuery, setLocationSearchQuery] = useState("")
   const [isSaving, setIsSaving] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
 
@@ -277,16 +278,21 @@ export function WriteRecordScreen({
             <div className="space-y-3">
               <Input
                 placeholder="장소 검색..."
+                value={locationSearchQuery}
+                onChange={(e) => setLocationSearchQuery(e.target.value)}
                 autoFocus
               />
               <div className="flex flex-wrap gap-2">
-                {locationSuggestions.map((suggestion) => (
+                {locationSuggestions
+                  .filter((suggestion) => suggestion.includes(locationSearchQuery))
+                  .map((suggestion) => (
                   <button
                     key={suggestion}
                     onClick={() => {
                       setLocation(suggestion)
                       setLocationMode(null)
                       setShowSuggestions(false)
+                      setLocationSearchQuery("")
                     }}
                     className="px-3 py-1.5 rounded-full border border-border text-sm hover:border-primary/30 hover:bg-muted/30 transition-colors"
                   >
@@ -294,12 +300,13 @@ export function WriteRecordScreen({
                   </button>
                 ))}
               </div>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
                 onClick={() => {
                   setLocationMode(null)
                   setShowSuggestions(false)
+                  setLocationSearchQuery("")
                 }}
               >
                 취소
