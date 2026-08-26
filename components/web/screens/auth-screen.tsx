@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Compass, X } from "lucide-react"
+import { toast } from "sonner"
+import { ApiError } from "@/lib/api/client"
+import { login, signup } from "@/lib/api/auth"
+import { setLoggedInUser } from "@/lib/auth"
 
 type AuthMode = "login" | "signup"
 
@@ -20,6 +24,7 @@ export function AuthScreen({ mode, onModeChange, onClose, onSuccess }: AuthScree
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [nickname, setNickname] = useState("")
+  const [submitting, setSubmitting] = useState(false)
 
   const isSignup = mode === "signup"
   const canSubmit = isSignup
@@ -29,7 +34,21 @@ export function AuthScreen({ mode, onModeChange, onClose, onSuccess }: AuthScree
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!canSubmit) return
-    onSuccess()
+
+    setSubmitting(true)
+    const request = isSignup
+      ? signup({ email, password, nickname })
+      : login({ email, password })
+
+    request
+      .then((user) => {
+        setLoggedInUser(user)
+        onSuccess()
+      })
+      .catch((err) => {
+        toast.error(err instanceof ApiError ? err.message : "요청 처리 중 오류가 발생했어요.")
+      })
+      .finally(() => setSubmitting(false))
   }
 
   return (
@@ -88,8 +107,8 @@ export function AuthScreen({ mode, onModeChange, onClose, onSuccess }: AuthScree
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={!canSubmit}>
-              {isSignup ? "회원가입" : "로그인"}
+            <Button type="submit" className="w-full" disabled={!canSubmit || submitting}>
+              {submitting ? "처리 중..." : isSignup ? "회원가입" : "로그인"}
             </Button>
           </form>
 

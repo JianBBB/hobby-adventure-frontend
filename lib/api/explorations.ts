@@ -1,6 +1,12 @@
 import { apiClient } from "./client"
 import type { PageMeta } from "./client"
-import type { CommonResponse, ExplorationDetail, ExplorationListItem, PageResponse } from "./types"
+import type {
+  CommonResponse,
+  ExplorationDetail,
+  ExplorationListItem,
+  PageResponse,
+  StartExplorationResponse,
+} from "./types"
 
 export interface GetExplorationsParams {
   categoryId?: number
@@ -29,6 +35,9 @@ export async function getExploration(explorationId: number): Promise<Exploration
   return res.data
 }
 
-export async function startExploration(explorationId: number): Promise<void> {
-  await apiClient.post(`/api/v1/explorations/${explorationId}/start`)
+export async function startExploration(explorationId: number): Promise<StartExplorationResponse> {
+  const res = await apiClient.post<CommonResponse<StartExplorationResponse>>(
+    `/api/v1/explorations/${explorationId}/start`
+  )
+  return res.data
 }

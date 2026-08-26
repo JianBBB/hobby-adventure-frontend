@@ -17,6 +17,7 @@ interface StartExplorationModalProps {
   onConfirm: () => void
   explorationName: string
   explorationIcon?: string
+  confirming?: boolean
 }
 
 export function StartExplorationModal({
@@ -25,6 +26,7 @@ export function StartExplorationModal({
   onConfirm,
   explorationName,
   explorationIcon = "🧭",
+  confirming = false,
 }: StartExplorationModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -41,15 +43,16 @@ export function StartExplorationModal({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex gap-3 sm:justify-center mt-4">
-          <Button variant="outline" onClick={onClose} className="flex-1 sm:flex-initial">
+          <Button variant="outline" onClick={onClose} disabled={confirming} className="flex-1 sm:flex-initial">
             취소
           </Button>
-          <Button 
-            onClick={onConfirm} 
+          <Button
+            onClick={onConfirm}
+            disabled={confirming}
             className="flex-1 sm:flex-initial gap-2 bg-accent hover:bg-accent/90 text-accent-foreground"
           >
             <Play className="h-4 w-4" />
-            탐험 시작
+            {confirming ? "시작하는 중..." : "탐험 시작"}
           </Button>
         </DialogFooter>
       </DialogContent>

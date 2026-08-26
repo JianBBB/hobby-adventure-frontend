@@ -1,14 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Sidebar } from "@/components/web/sidebar"
 import { Header } from "@/components/web/header"
-import { ExplorationDetailScreen } from "@/components/web/screens/exploration-detail-screen"
-import { ExplorationIntroScreen } from "@/components/web/screens/exploration-intro-screen"
 import { WriteRecordScreen } from "@/components/web/screens/write-record-screen"
 import { AuthScreen } from "@/components/web/screens/auth-screen"
 import { AppNavigationContext } from "@/lib/app-navigation-context"
+import { clearLoggedInUser, getLoggedInUser } from "@/lib/auth"
 
 interface WriteRecordData {
   explorationId: string
@@ -20,35 +19,24 @@ interface WriteRecordData {
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const [isLoggedIn, setIsLoggedIn] = useState(true) // Demo: logged in state
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [authMode, setAuthMode] = useState<"login" | "signup" | null>(null)
-  const [selectedExplorationId, setSelectedExplorationId] = useState<string | null>(null)
-  const [selectedExplorationForProgress, setSelectedExplorationForProgress] = useState<string | null>(null)
   const [writeRecordData, setWriteRecordData] = useState<WriteRecordData | null>(null)
 
+  // localStorage에 저장된 로그인 정보 기준으로 초기 상태 동기화
+  useEffect(() => {
+    setIsLoggedIn(getLoggedInUser() !== null)
+  }, [])
+
   const handleExplorationSelect = (id: string) => {
-    setSelectedExplorationId(id)
+    router.push(`/explore/${id}`)
   }
 
   const handleContinueExploration = (id: string) => {
-    setSelectedExplorationForProgress(id)
-  }
-
-  const handleExplorationBack = () => {
-    setSelectedExplorationId(null)
-  }
-
-  const handleProgressBack = () => {
-    setSelectedExplorationForProgress(null)
-  }
-
-  const handleStartExploration = (id: string) => {
-    setSelectedExplorationId(null)
-    setSelectedExplorationForProgress(id)
+    router.push(`/my-explorations/${id}`)
   }
 
   const handleWriteRecord = (data: WriteRecordData) => {
-    setSelectedExplorationForProgress(null)
     setWriteRecordData(data)
   }
 
@@ -59,37 +47,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const handleWriteRecordSave = () => {
     setWriteRecordData(null)
     router.push("/record")
-  }
-
-  let overlay: React.ReactNode = null
-  if (writeRecordData) {
-    overlay = (
-      <WriteRecordScreen
-        explorationId={writeRecordData.explorationId}
-        explorationName={writeRecordData.explorationName}
-        explorationIcon={writeRecordData.explorationIcon}
-        explorationCategory={writeRecordData.explorationCategory}
-        isNewRecord={writeRecordData.isNewRecord}
-        onBack={handleWriteRecordBack}
-        onSave={handleWriteRecordSave}
-      />
-    )
-  } else if (selectedExplorationForProgress) {
-    overlay = (
-      <ExplorationDetailScreen
-        explorationId={selectedExplorationForProgress}
-        onBack={handleProgressBack}
-        onWriteRecord={handleWriteRecord}
-      />
-    )
-  } else if (selectedExplorationId) {
-    overlay = (
-      <ExplorationIntroScreen
-        explorationId={selectedExplorationId}
-        onBack={handleExplorationBack}
-        onStart={handleStartExploration}
-      />
-    )
   }
 
   return (
@@ -120,12 +77,27 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             isLoggedIn={isLoggedIn}
             onLogin={() => setAuthMode("login")}
             onSignup={() => setAuthMode("signup")}
-            onLogout={() => setIsLoggedIn(false)}
+            onLogout={() => {
+              clearLoggedInUser()
+              setIsLoggedIn(false)
+            }}
             onNavigateToProfile={() => router.push("/profile")}
           />
 
           <div className="mx-auto max-w-6xl px-8 py-8">
-            {overlay ?? children}
+            {writeRecordData ? (
+              <WriteRecordScreen
+                explorationId={writeRecordData.explorationId}
+                explorationName={writeRecordData.explorationName}
+                explorationIcon={writeRecordData.explorationIcon}
+                explorationCategory={writeRecordData.explorationCategory}
+                isNewRecord={writeRecordData.isNewRecord}
+                onBack={handleWriteRecordBack}
+                onSave={handleWriteRecordSave}
+              />
+            ) : (
+              children
+            )}
           </div>
         </main>
       </div>

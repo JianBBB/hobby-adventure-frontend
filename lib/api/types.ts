@@ -21,6 +21,10 @@ export interface SignupRequest {
   nickname: string
 }
 
+export interface SignupResponse {
+  success: boolean
+}
+
 export interface AuthResponse {
   userId: number
   nickname: string
@@ -59,7 +63,9 @@ export interface MyExplorationListItem {
   userExplorationId: number
   explorationId: number
   title: string
+  categoryId: number
   categoryName: string
+  shortDescription: string
   thumbnailUrl: string | null
   status: ExplorationStatus
   startedAt: string
@@ -68,7 +74,11 @@ export interface MyExplorationListItem {
 }
 
 export interface MyExplorationDetail extends MyExplorationListItem {
-  description: string
+  recordId: number | null
+}
+
+export interface StartExplorationResponse {
+  userExplorationId: number
 }
 
 // 기록
