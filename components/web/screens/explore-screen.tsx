@@ -11,6 +11,8 @@ import {
   Sparkles
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
+import { ApiError } from "@/lib/api/client"
 import { getCategories } from "@/lib/api/categories"
 import type { Category } from "@/lib/api/types"
 
@@ -147,11 +149,18 @@ interface ExploreScreenProps {
 
 export function ExploreScreen({ onExplorationSelect }: ExploreScreenProps) {
   const [categories, setCategories] = useState<Category[]>([])
+  const [categoriesLoading, setCategoriesLoading] = useState(true)
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
 
   useEffect(() => {
-    getCategories().then(setCategories)
+    setCategoriesLoading(true)
+    getCategories()
+      .then(setCategories)
+      .catch((err) => {
+        toast.error(err instanceof ApiError ? err.message : "카테고리를 불러오지 못했어요.")
+      })
+      .finally(() => setCategoriesLoading(false))
   }, [])
 
   // 탐험 목록은 다음 단계(탐험목록/상세 연동)에서 실제 API로 교체 예정.
@@ -203,21 +212,29 @@ export function ExploreScreen({ onExplorationSelect }: ExploreScreenProps) {
           <span>🧭</span>
           <span>전체</span>
         </button>
-        {categories.map((category) => (
-          <button
-            key={category.categoryId}
-            onClick={() => setSelectedCategoryId(category.categoryId)}
-            className={cn(
-              "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all",
-              selectedCategoryId === category.categoryId
-                ? "bg-primary text-primary-foreground shadow-md"
-                : "bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
-            )}
-          >
-            <span>{categoryIcons[category.code] || "🧭"}</span>
-            <span>{category.name}</span>
-          </button>
-        ))}
+        {categoriesLoading ? (
+          <>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-9 w-20 animate-pulse rounded-full bg-secondary" />
+            ))}
+          </>
+        ) : (
+          categories.map((category) => (
+            <button
+              key={category.categoryId}
+              onClick={() => setSelectedCategoryId(category.categoryId)}
+              className={cn(
+                "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all",
+                selectedCategoryId === category.categoryId
+                  ? "bg-primary text-primary-foreground shadow-md"
+                  : "bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+              )}
+            >
+              <span>{categoryIcons[category.code] || "🧭"}</span>
+              <span>{category.name}</span>
+            </button>
+          ))
+        )}
       </div>
 
       {/* Explorations Grid */}
