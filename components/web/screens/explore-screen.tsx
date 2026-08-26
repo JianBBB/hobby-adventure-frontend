@@ -1,27 +1,30 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { 
-  Search, 
+import {
+  Search,
   Filter,
   ChevronRight,
   Sparkles
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { getCategories } from "@/lib/api/categories"
+import type { Category } from "@/lib/api/types"
 
-const categories = [
-  { id: "all", label: "전체", icon: "🧭" },
-  { id: "culture", label: "문화/예술", icon: "🎨" },
-  { id: "music", label: "음악", icon: "🎵" },
-  { id: "food", label: "음식", icon: "🍽️" },
-  { id: "outdoor", label: "야외활동", icon: "🏔️" },
-  { id: "sports", label: "운동", icon: "💪" },
-  { id: "creative", label: "창작", icon: "✨" },
-  { id: "relax", label: "휴식", icon: "🧘" },
-]
+// 카테고리는 장식용 이모지가 없어서 코드 기준으로 프론트에서만 매핑
+const categoryIcons: Record<string, string> = {
+  EXERCISE: "💪",
+  VISIT: "📍",
+  GATHERING: "👥",
+  CREATION: "✨",
+  LEARNING: "📚",
+  APPRECIATION: "🎨",
+  REST: "🧘",
+  ETC: "🌟",
+}
 
 const explorations = [
   {
@@ -143,24 +146,17 @@ interface ExploreScreenProps {
 }
 
 export function ExploreScreen({ onExplorationSelect }: ExploreScreenProps) {
-  const [selectedCategory, setSelectedCategory] = useState("all")
+  const [categories, setCategories] = useState<Category[]>([])
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
 
+  useEffect(() => {
+    getCategories().then(setCategories)
+  }, [])
+
+  // 탐험 목록은 다음 단계(탐험목록/상세 연동)에서 실제 API로 교체 예정.
+  // 지금은 카테고리 필터가 목업 데이터의 카테고리명과 대응이 안 되므로 검색만 적용.
   const filteredExplorations = explorations.filter((exploration) => {
-    if (selectedCategory !== "all") {
-      const categoryMap: Record<string, string[]> = {
-        culture: ["문화/예술"],
-        music: ["음악"],
-        food: ["음식"],
-        outdoor: ["야외활동"],
-        sports: ["운동"],
-        creative: ["창작"],
-        relax: ["휴식"],
-      }
-      if (!categoryMap[selectedCategory]?.includes(exploration.category)) {
-        return false
-      }
-    }
     if (searchQuery) {
       return exploration.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
              exploration.description.toLowerCase().includes(searchQuery.toLowerCase())
@@ -195,19 +191,31 @@ export function ExploreScreen({ onExplorationSelect }: ExploreScreenProps) {
 
       {/* Categories */}
       <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => setSelectedCategoryId(null)}
+          className={cn(
+            "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all",
+            selectedCategoryId === null
+              ? "bg-primary text-primary-foreground shadow-md"
+              : "bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+          )}
+        >
+          <span>🧭</span>
+          <span>전체</span>
+        </button>
         {categories.map((category) => (
           <button
-            key={category.id}
-            onClick={() => setSelectedCategory(category.id)}
+            key={category.categoryId}
+            onClick={() => setSelectedCategoryId(category.categoryId)}
             className={cn(
               "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all",
-              selectedCategory === category.id
+              selectedCategoryId === category.categoryId
                 ? "bg-primary text-primary-foreground shadow-md"
                 : "bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
             )}
           >
-            <span>{category.icon}</span>
-            <span>{category.label}</span>
+            <span>{categoryIcons[category.code] || "🧭"}</span>
+            <span>{category.name}</span>
           </button>
         ))}
       </div>
