@@ -35,7 +35,7 @@ export interface Category {
 
 // 탐험 (공개 카탈로그)
 export interface ExplorationListItem {
-  explorationId: number
+  id: number
   title: string
   shortDescription: string
   categoryName: string
@@ -43,11 +43,13 @@ export interface ExplorationListItem {
 }
 
 export interface ExplorationDetail {
-  explorationId: number
+  id: number
   title: string
+  shortDescription: string
   description: string
   categoryName: string
   thumbnailUrl: string | null
+  createdAt: string
 }
 
 // 내 탐험

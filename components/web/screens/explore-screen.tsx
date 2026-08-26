@@ -14,7 +14,8 @@ import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { ApiError } from "@/lib/api/client"
 import { getCategories } from "@/lib/api/categories"
-import type { Category } from "@/lib/api/types"
+import { getExplorations } from "@/lib/api/explorations"
+import type { Category, ExplorationListItem } from "@/lib/api/types"
 
 // 카테고리는 장식용 이모지가 없어서 코드 기준으로 프론트에서만 매핑
 const categoryIcons: Record<string, string> = {
@@ -28,106 +29,44 @@ const categoryIcons: Record<string, string> = {
   ETC: "🌟",
 }
 
-const explorations = [
-  {
-    id: 1,
-    name: "재즈바 탐방",
-    description: "분위기 있는 재즈바에서 라이브 공연 감상하기",
-    category: "음악",
-    icon: "🎷",
-    estimatedTime: "2-3시간",
-  },
-  {
-    id: 2,
-    name: "도예 체험",
-    description: "흙을 빚어 나만의 작품 만들기",
-    category: "창작",
-    icon: "🏺",
-    estimatedTime: "2-3시간",
-  },
-  {
-    id: 3,
-    name: "클라이밍 체험",
-    description: "실내 클라이밍으로 새로운 도전 시작하기",
-    category: "운동",
-    icon: "🧗",
-    estimatedTime: "1-2시간",
-  },
-  {
-    id: 4,
-    name: "독립 서점 탐험",
-    description: "숨겨진 독립 서점에서 특별한 책 찾기",
-    category: "문화/예술",
-    icon: "📚",
-    estimatedTime: "1-2시간",
-  },
-  {
-    id: 5,
-    name: "야시장 방문",
-    description: "다양한 먹거리와 볼거리 즐기기",
-    category: "음식",
-    icon: "🏮",
-    estimatedTime: "2-3시간",
-  },
-  {
-    id: 6,
-    name: "수채화 그리기",
-    description: "물감과 붓으로 자유롭게 그림 그리기",
-    category: "창작",
-    icon: "🎨",
-    estimatedTime: "1-2시간",
-  },
-  {
-    id: 7,
-    name: "별자리 관측",
-    description: "밤하늘의 별자리 찾아보기",
-    category: "야외활동",
-    icon: "⭐",
-    estimatedTime: "1-2시간",
-  },
-  {
-    id: 8,
-    name: "홈 베이킹",
-    description: "집에서 빵이나 쿠키 굽기",
-    category: "음식",
-    icon: "🍞",
-    estimatedTime: "3-4시간",
-  },
-]
-
-function ExplorationCard({ 
+function ExplorationCard({
   exploration,
-  onExplorationSelect 
-}: { 
-  exploration: typeof explorations[0]
-  onExplorationSelect?: (id: string) => void 
+  onExplorationSelect
+}: {
+  exploration: ExplorationListItem
+  onExplorationSelect?: (id: string) => void
 }) {
   const handleCardClick = () => {
     onExplorationSelect?.(exploration.id.toString())
   }
 
   return (
-    <Card 
-      className="group cursor-pointer shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5"
+    <Card
+      className="group flex h-full cursor-pointer flex-col shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5"
       onClick={handleCardClick}
     >
-      <CardContent className="p-5">
+      <CardContent className="flex flex-1 flex-col p-5">
         <div className="flex items-start gap-4 mb-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 text-3xl group-hover:scale-105 transition-transform">
-            {exploration.icon}
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 text-3xl group-hover:scale-105 transition-transform">
+            {exploration.thumbnailUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={exploration.thumbnailUrl} alt={exploration.title} className="h-full w-full object-cover" />
+            ) : (
+              "🧭"
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs text-primary font-medium">{exploration.category}</span>
+              <span className="text-xs text-primary font-medium">{exploration.categoryName}</span>
             </div>
-            <h3 className="font-bold text-foreground">{exploration.name}</h3>
-            <p className="text-sm text-muted-foreground">{exploration.description}</p>
+            <h3 className="font-bold text-foreground line-clamp-1">{exploration.title}</h3>
+            <p className="text-sm text-muted-foreground line-clamp-2">{exploration.shortDescription}</p>
           </div>
         </div>
-        
-        <div className="flex items-center justify-end">
-          <Button 
-            className="gap-2 bg-accent hover:bg-accent/90 text-accent-foreground" 
+
+        <div className="mt-auto flex items-center justify-end">
+          <Button
+            className="gap-2 bg-accent hover:bg-accent/90 text-accent-foreground"
             size="sm"
             onClick={(e) => {
               e.stopPropagation()
@@ -152,6 +91,8 @@ export function ExploreScreen({ onExplorationSelect }: ExploreScreenProps) {
   const [categoriesLoading, setCategoriesLoading] = useState(true)
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
+  const [explorations, setExplorations] = useState<ExplorationListItem[]>([])
+  const [explorationsLoading, setExplorationsLoading] = useState(true)
 
   useEffect(() => {
     setCategoriesLoading(true)
@@ -163,12 +104,21 @@ export function ExploreScreen({ onExplorationSelect }: ExploreScreenProps) {
       .finally(() => setCategoriesLoading(false))
   }, [])
 
-  // 탐험 목록은 다음 단계(탐험목록/상세 연동)에서 실제 API로 교체 예정.
-  // 지금은 카테고리 필터가 목업 데이터의 카테고리명과 대응이 안 되므로 검색만 적용.
+  useEffect(() => {
+    setExplorationsLoading(true)
+    getExplorations({ categoryId: selectedCategoryId ?? undefined, page: 1, size: 20 })
+      .then(({ items }) => setExplorations(items))
+      .catch((err) => {
+        toast.error(err instanceof ApiError ? err.message : "탐험 목록을 불러오지 못했어요.")
+      })
+      .finally(() => setExplorationsLoading(false))
+  }, [selectedCategoryId])
+
+  // 검색어는 프론트에서만 필터링(백엔드에 검색 파라미터 없음, 나중에 추가 예정)
   const filteredExplorations = explorations.filter((exploration) => {
     if (searchQuery) {
-      return exploration.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-             exploration.description.toLowerCase().includes(searchQuery.toLowerCase())
+      return exploration.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+             exploration.shortDescription.toLowerCase().includes(searchQuery.toLowerCase())
     }
     return true
   })
@@ -244,17 +194,36 @@ export function ExploreScreen({ onExplorationSelect }: ExploreScreenProps) {
           <h2 className="text-lg font-bold text-foreground">둘러보기</h2>
         </div>
         
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredExplorations.map((exploration) => (
-            <ExplorationCard 
-              key={exploration.id} 
-              exploration={exploration} 
-              onExplorationSelect={onExplorationSelect}
-            />
-          ))}
-        </div>
-        
-        {filteredExplorations.length === 0 && (
+        {explorationsLoading ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Card key={i} className="shadow-md">
+                <CardContent className="p-5">
+                  <div className="mb-4 flex items-start gap-4">
+                    <div className="h-14 w-14 shrink-0 animate-pulse rounded-xl bg-secondary" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3 w-16 animate-pulse rounded bg-secondary" />
+                      <div className="h-4 w-32 animate-pulse rounded bg-secondary" />
+                      <div className="h-3 w-40 animate-pulse rounded bg-secondary" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredExplorations.map((exploration) => (
+              <ExplorationCard
+                key={exploration.id}
+                exploration={exploration}
+                onExplorationSelect={onExplorationSelect}
+              />
+            ))}
+          </div>
+        )}
+
+        {!explorationsLoading && filteredExplorations.length === 0 && (
           <Card className="py-12">
             <CardContent className="flex flex-col items-center justify-center text-center">
               <Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
