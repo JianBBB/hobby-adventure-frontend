@@ -8,30 +8,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Bell, Settings, LogOut, User, ChevronDown } from "lucide-react"
+import { LogOut, User, ChevronDown } from "lucide-react"
 
 interface HeaderProps {
   isLoggedIn: boolean
   onLogin: () => void
   onLogout: () => void
+  onNavigateToProfile: () => void
 }
 
-export function Header({ isLoggedIn, onLogin, onLogout }: HeaderProps) {
+export function Header({ isLoggedIn, onLogin, onLogout, onNavigateToProfile }: HeaderProps) {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-end gap-4 border-b border-border bg-background/95 backdrop-blur px-8">
       {isLoggedIn ? (
         <>
-          {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5 text-muted-foreground" />
-            <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-accent" />
-          </Button>
-
-          {/* Settings */}
-          <Button variant="ghost" size="icon">
-            <Settings className="h-5 w-5 text-muted-foreground" />
-          </Button>
-
           {/* Account Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -43,13 +33,9 @@ export function Header({ isLoggedIn, onLogin, onLogout }: HeaderProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem className="gap-2">
+              <DropdownMenuItem className="gap-2" onClick={onNavigateToProfile}>
                 <User className="h-4 w-4" />
                 내 프로필
-              </DropdownMenuItem>
-              <DropdownMenuItem className="gap-2">
-                <Settings className="h-4 w-4" />
-                설정
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="gap-2 text-destructive" onClick={onLogout}>

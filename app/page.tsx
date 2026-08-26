@@ -134,10 +134,11 @@ export default function HobbyQuestApp() {
       {/* Main Content */}
       <main className="ml-64 min-h-screen">
         {/* Header */}
-        <Header 
-          isLoggedIn={isLoggedIn} 
+        <Header
+          isLoggedIn={isLoggedIn}
           onLogin={() => setIsLoggedIn(true)}
           onLogout={() => setIsLoggedIn(false)}
+          onNavigateToProfile={() => handleTabChange("profile")}
         />
         
         <div className="mx-auto max-w-6xl px-8 py-8">
