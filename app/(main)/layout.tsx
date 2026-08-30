@@ -13,11 +13,11 @@ import { clearLoggedInUser, getLoggedInUser, type LoggedInUser } from "@/lib/aut
 const PROTECTED_PATHS = ["/profile", "/my-explorations", "/record"]
 
 interface WriteRecordData {
-  explorationId: string
+  mode: "create" | "edit"
+  userExplorationId: number
+  recordId?: number
   explorationName: string
-  explorationIcon: string
   explorationCategory: string
-  isNewRecord: boolean
 }
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
@@ -74,6 +74,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         onExplorationSelect: handleExplorationSelect,
         onContinueExploration: handleContinueExploration,
         onWriteRecord: handleWriteRecord,
+        isLoggedIn,
       }}
     >
       <div className="min-h-screen bg-background">
@@ -110,11 +111,11 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           <div className="mx-auto max-w-6xl px-8 py-8">
             {needsLogin ? null : writeRecordData ? (
               <WriteRecordScreen
-                explorationId={writeRecordData.explorationId}
+                mode={writeRecordData.mode}
+                userExplorationId={writeRecordData.userExplorationId}
+                recordId={writeRecordData.recordId}
                 explorationName={writeRecordData.explorationName}
-                explorationIcon={writeRecordData.explorationIcon}
                 explorationCategory={writeRecordData.explorationCategory}
-                isNewRecord={writeRecordData.isNewRecord}
                 onBack={handleWriteRecordBack}
                 onSave={handleWriteRecordSave}
               />

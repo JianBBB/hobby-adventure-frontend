@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState, type ChangeEvent } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,66 +10,136 @@ import {
   MapPin,
   Star,
   Camera,
-  CheckCircle2
+  CheckCircle2,
+  X,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
+import { ApiError } from "@/lib/api/client"
+import { getRecord, createRecord, updateRecord } from "@/lib/api/records"
+import { EMOTION_OPTIONS } from "@/lib/emotion"
+import type { EmotionCode } from "@/lib/api/types"
 
 interface WriteRecordScreenProps {
-  explorationId: string
+  mode: "create" | "edit"
+  userExplorationId: number
+  recordId?: number
   explorationName: string
-  explorationIcon: string
   explorationCategory: string
-  isNewRecord: boolean
   onBack: () => void
   onSave: () => void
 }
 
-// Emotion options
-const emotions = [
-  { value: "excited", label: "신남", emoji: "😆" },
-  { value: "proud", label: "뿌듯", emoji: "😊" },
-  { value: "peaceful", label: "평온", emoji: "😌" },
-  { value: "surprised", label: "놀람", emoji: "😲" },
-  { value: "tired", label: "피곤", emoji: "😓" },
-  { value: "disappointed", label: "아쉬움", emoji: "😔" },
-]
-
 export function WriteRecordScreen({
-  explorationId,
+  mode,
+  userExplorationId,
+  recordId,
   explorationName,
-  explorationIcon,
   explorationCategory,
-  isNewRecord,
   onBack,
-  onSave
+  onSave,
 }: WriteRecordScreenProps) {
-  // Default to today's date
   const today = new Date()
-  const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`
 
-  const [recordName, setRecordName] = useState(explorationName)
-  const [recordDate, setRecordDate] = useState(todayString)
+  const [loading, setLoading] = useState(mode === "edit")
+  const [title, setTitle] = useState(explorationName)
+  const [visitedDate, setVisitedDate] = useState(todayString)
   const [rating, setRating] = useState(0)
-  const [selectedEmotion, setSelectedEmotion] = useState("")
-  const [note, setNote] = useState("")
-  const [location, setLocation] = useState("")
-  const [locationInput, setLocationInput] = useState("")
+  const [selectedEmotion, setSelectedEmotion] = useState<EmotionCode | "">("")
+  const [content, setContent] = useState("")
+  const [placeName, setPlaceName] = useState("")
+  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([])
+  const [newImages, setNewImages] = useState<File[]>([])
+  const [newImagePreviews, setNewImagePreviews] = useState<string[]>([])
   const [isSaving, setIsSaving] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleSave = () => {
-    setIsSaving(true)
-    // Simulate save
-    setTimeout(() => {
-      setIsSaving(false)
-      setShowSuccess(true)
-      setTimeout(() => {
-        onSave()
-      }, 1500)
-    }, 800)
+  useEffect(() => {
+    if (mode !== "edit" || !recordId) return
+    getRecord(recordId)
+      .then((record) => {
+        setTitle(record.title)
+        setVisitedDate(record.visitedDate)
+        setRating(record.rating)
+        setSelectedEmotion(record.emotionCode)
+        setContent(record.content)
+        setPlaceName(record.placeName ?? "")
+        setExistingImageUrls(record.imageUrls)
+      })
+      .catch((err) => {
+        toast.error(err instanceof ApiError ? err.message : "기록을 불러오지 못했어요.")
+      })
+      .finally(() => setLoading(false))
+  }, [mode, recordId])
+
+  useEffect(() => {
+    const urls = newImages.map((file) => URL.createObjectURL(file))
+    setNewImagePreviews(urls)
+    return () => {
+      urls.forEach((url) => URL.revokeObjectURL(url))
+    }
+  }, [newImages])
+
+  const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? [])
+    if (files.length === 0) return
+    setNewImages((prev) => {
+      const combined = [...prev, ...files]
+      if (combined.length > 10) {
+        toast.error("사진은 최대 10장까지 첨부할 수 있어요. 앞의 10장만 담았어요.")
+        return combined.slice(0, 10)
+      }
+      return combined
+    })
+    e.target.value = ""
   }
 
-  const canSave = (isNewRecord ? recordName.trim().length > 0 : true) && rating > 0 && selectedEmotion && note.trim().length > 0
+  const removeNewImage = (index: number) => {
+    setNewImages((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const canSave = title.trim().length > 0 && rating > 0 && !!selectedEmotion && content.trim().length > 0
+
+  const handleSave = () => {
+    if (!selectedEmotion) return
+
+    const payload = {
+      title: title.trim(),
+      visitedDate,
+      rating,
+      emotionCode: selectedEmotion,
+      placeName: placeName.trim() || undefined,
+      content: content.trim(),
+    }
+
+    setIsSaving(true)
+    const request =
+      mode === "create"
+        ? createRecord({ userExplorationId, ...payload }, newImages)
+        : updateRecord(recordId!, payload, newImages)
+
+    request
+      .then(() => {
+        setShowSuccess(true)
+        setTimeout(onSave, 1200)
+      })
+      .catch((err) => {
+        toast.error(err instanceof ApiError ? err.message : "기록을 저장하지 못했어요.")
+      })
+      .finally(() => setIsSaving(false))
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-8 w-24 animate-pulse rounded bg-secondary" />
+        <div className="h-32 animate-pulse rounded-xl bg-secondary" />
+        <div className="h-32 animate-pulse rounded-xl bg-secondary" />
+      </div>
+    )
+  }
 
   if (showSuccess) {
     return (
@@ -77,7 +147,9 @@ export function WriteRecordScreen({
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-quest-success/20 mb-6 animate-bounce">
           <CheckCircle2 className="h-10 w-10 text-quest-success" />
         </div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">기록이 저장되었어요!</h2>
+        <h2 className="text-2xl font-bold text-foreground mb-2">
+          {mode === "create" ? "기록이 저장되었어요!" : "기록이 수정되었어요!"}
+        </h2>
         <p className="text-muted-foreground">탐험 기록에서 확인할 수 있어요</p>
       </div>
     )
@@ -92,51 +164,43 @@ export function WriteRecordScreen({
         </Button>
         <div>
           <h1 className="text-2xl font-bold text-foreground">
-            {isNewRecord ? "새 탐험 기록" : "탐험 기록 남기기"}
+            {mode === "create" ? "탐험 기록 남기기" : "기록 수정하기"}
           </h1>
-          <p className="text-sm text-muted-foreground">
-            {isNewRecord ? "어떤 탐험을 했는지 기록해보세요" : "이번 탐험은 어땠나요?"}
-          </p>
+          <p className="text-sm text-muted-foreground">이번 탐험은 어땠나요?</p>
         </div>
       </div>
 
-      {/* Exploration Info - Auto filled or Input */}
-      {isNewRecord ? (
-        <Card className="shadow-lg">
-          <CardContent className="p-5">
-            <h3 className="font-bold text-foreground mb-4">어떤 탐험을 했나요?</h3>
-            <Input
-              placeholder="예: 재즈바 탐방, 도자기 공예 체험"
-              value={recordName}
-              onChange={(e) => setRecordName(e.target.value)}
-              className="text-lg"
-            />
-          </CardContent>
-        </Card>
-      ) : (
-        <Card className="shadow-lg border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-white shadow-md text-3xl">
-                {explorationIcon}
-              </div>
-              <div className="flex-1">
-                <span className="text-xs text-primary font-medium">{explorationCategory}</span>
-                <h2 className="text-xl font-bold text-foreground">{explorationName}</h2>
-              </div>
+      {/* Exploration Info */}
+      <Card className="shadow-lg border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
+        <CardContent className="p-5">
+          <div className="flex items-center gap-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-white shadow-md text-3xl">
+              🧭
             </div>
-          </CardContent>
-        </Card>
-      )}
+            <div className="flex-1">
+              <span className="text-xs text-primary font-medium">{explorationCategory}</span>
+              <h2 className="text-xl font-bold text-foreground">{explorationName}</h2>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Date Selection */}
+      {/* Title */}
+      <Card className="shadow-lg">
+        <CardContent className="p-5">
+          <h3 className="font-bold text-foreground mb-4">기록 제목</h3>
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} className="text-lg" />
+        </CardContent>
+      </Card>
+
+      {/* Date */}
       <Card className="shadow-lg">
         <CardContent className="p-5">
           <h3 className="font-bold text-foreground mb-4">언제 탐험했나요?</h3>
           <Input
             type="date"
-            value={recordDate}
-            onChange={(e) => setRecordDate(e.target.value)}
+            value={visitedDate}
+            onChange={(e) => setVisitedDate(e.target.value)}
             className="w-full"
           />
         </CardContent>
@@ -156,23 +220,12 @@ export function WriteRecordScreen({
                 <Star
                   className={cn(
                     "h-10 w-10 transition-colors",
-                    star <= rating
-                      ? "fill-highlight text-highlight"
-                      : "fill-muted text-muted"
+                    star <= rating ? "fill-highlight text-highlight" : "fill-muted text-muted"
                   )}
                 />
               </button>
             ))}
           </div>
-          {rating > 0 && (
-            <p className="text-center mt-3 text-sm text-muted-foreground">
-              {rating === 5 && "최고의 탐험이었어요!"}
-              {rating === 4 && "정말 좋았어요!"}
-              {rating === 3 && "괜찮았어요"}
-              {rating === 2 && "조금 아쉬웠어요"}
-              {rating === 1 && "다음엔 더 좋을 거예요"}
-            </p>
-          )}
         </CardContent>
       </Card>
 
@@ -181,22 +234,24 @@ export function WriteRecordScreen({
         <CardContent className="p-5">
           <h3 className="font-bold text-foreground mb-4">어떤 기분이 들었나요?</h3>
           <div className="grid grid-cols-3 gap-3">
-            {emotions.map((emotion) => (
+            {EMOTION_OPTIONS.map((emotion) => (
               <button
-                key={emotion.value}
-                onClick={() => setSelectedEmotion(emotion.value)}
+                key={emotion.code}
+                onClick={() => setSelectedEmotion(emotion.code)}
                 className={cn(
                   "flex flex-col items-center gap-2 p-4 rounded-xl border transition-all",
-                  selectedEmotion === emotion.value
+                  selectedEmotion === emotion.code
                     ? "border-primary bg-primary/10"
                     : "border-border hover:border-primary/30 hover:bg-muted/30"
                 )}
               >
                 <span className="text-2xl">{emotion.emoji}</span>
-                <span className={cn(
-                  "text-sm font-medium",
-                  selectedEmotion === emotion.value ? "text-primary" : "text-foreground"
-                )}>
+                <span
+                  className={cn(
+                    "text-sm font-medium",
+                    selectedEmotion === emotion.code ? "text-primary" : "text-foreground"
+                  )}
+                >
                   {emotion.label}
                 </span>
               </button>
@@ -209,76 +264,85 @@ export function WriteRecordScreen({
       <Card className="shadow-lg">
         <CardContent className="p-5">
           <h3 className="font-bold text-foreground mb-2">어디서 탐험했나요?</h3>
-          <p className="text-sm text-muted-foreground mb-4">선택 사항이에요. 탐험 지도에 표시됩니다.</p>
-          
-          {!location && (
-            <div className="flex gap-2">
-              <Input
-                placeholder="예: 홍대 재즈바, 강남 클라이밍센터"
-                value={locationInput}
-                onChange={(e) => setLocationInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && locationInput.trim()) {
-                    setLocation(locationInput.trim())
-                    setLocationInput("")
-                  }
-                }}
-              />
-              <Button
-                disabled={!locationInput.trim()}
-                onClick={() => {
-                  setLocation(locationInput.trim())
-                  setLocationInput("")
-                }}
-              >
-                추가
-              </Button>
-            </div>
-          )}
-
-          {location && (
-            <div className="flex items-center justify-between p-3 rounded-xl bg-primary/5 border border-primary/20">
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-primary" />
-                <span className="font-medium text-foreground">{location}</span>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setLocation("")}
-              >
-                변경
-              </Button>
-            </div>
-          )}
+          <p className="text-sm text-muted-foreground mb-4">선택 사항이에요.</p>
+          <div className="flex items-center gap-2">
+            <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
+            <Input
+              placeholder="예: 홍대 재즈바, 강남 클라이밍센터"
+              value={placeName}
+              onChange={(e) => setPlaceName(e.target.value)}
+            />
+          </div>
         </CardContent>
       </Card>
 
-      {/* Note */}
+      {/* Content */}
       <Card className="shadow-lg">
         <CardContent className="p-5">
           <h3 className="font-bold text-foreground mb-2">경험을 기록해주세요</h3>
           <p className="text-sm text-muted-foreground mb-4">어떤 것을 배웠나요? 기억에 남는 순간이 있나요?</p>
           <Textarea
-            placeholder="예: 처음으로 도자기를 빚어봤다. 생각보다 어려웠지만 완성했을 때 뿌듯했다. 다음엔 접시도 만들어보고 싶다."
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
+            placeholder="예: 처음으로 도자기를 빚어봤다. 생각보다 어려웠지만 완성했을 때 뿌듯했다."
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
             className="min-h-[120px] resize-none"
           />
-          <p className="text-xs text-muted-foreground mt-2 text-right">
-            {note.length}자
-          </p>
+          <p className="text-xs text-muted-foreground mt-2 text-right">{content.length}자</p>
         </CardContent>
       </Card>
 
-      {/* Photo (Optional) */}
+      {/* Photos */}
       <Card className="shadow-lg">
         <CardContent className="p-5">
           <h3 className="font-bold text-foreground mb-2">사진 추가</h3>
-          <p className="text-sm text-muted-foreground mb-4">선택 사항이에요</p>
-          <Button variant="outline" className="w-full gap-2 h-24 border-dashed">
+          <p className="text-sm text-muted-foreground mb-4">선택 사항이에요. 최대 10장.</p>
+
+          {mode === "edit" && existingImageUrls.length > 0 && newImages.length === 0 && (
+            <div className="mb-4">
+              <div className="grid grid-cols-4 gap-2">
+                {existingImageUrls.map((url, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={i} src={url} alt="" className="aspect-square rounded-lg object-cover" />
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                새 사진을 추가하면 기존 사진은 모두 교체돼요.
+              </p>
+            </div>
+          )}
+
+          {newImagePreviews.length > 0 && (
+            <div className="grid grid-cols-4 gap-2 mb-4">
+              {newImagePreviews.map((url, i) => (
+                <div key={i} className="relative aspect-square">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt="" className="h-full w-full rounded-lg object-cover" />
+                  <button
+                    onClick={() => removeNewImage(i)}
+                    className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-background"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            hidden
+            onChange={handleFileSelect}
+          />
+          <Button
+            variant="outline"
+            className="w-full gap-2 h-24 border-dashed"
+            onClick={() => fileInputRef.current?.click()}
+          >
             <Camera className="h-5 w-5" />
-            사진 업로드
+            사진 선택
           </Button>
         </CardContent>
       </Card>
@@ -289,9 +353,7 @@ export function WriteRecordScreen({
           size="lg"
           className={cn(
             "w-full gap-2 shadow-lg",
-            canSave 
-              ? "bg-accent hover:bg-accent/90 text-accent-foreground" 
-              : "bg-muted text-muted-foreground"
+            canSave ? "bg-accent hover:bg-accent/90 text-accent-foreground" : "bg-muted text-muted-foreground"
           )}
           disabled={!canSave || isSaving}
           onClick={handleSave}
@@ -301,13 +363,13 @@ export function WriteRecordScreen({
           ) : (
             <>
               <CheckCircle2 className="h-5 w-5" />
-              기록 저장하기
+              {mode === "create" ? "기록 저장하기" : "수정 완료"}
             </>
           )}
         </Button>
         {!canSave && (
           <p className="text-center text-xs text-muted-foreground mt-2">
-            {isNewRecord ? "탐험 이름, 별점, 기분, 경험을 모두 입력해주세요" : "별점, 기분, 경험을 모두 입력해주세요"}
+            제목, 별점, 기분, 경험을 모두 입력해주세요
           </p>
         )}
       </div>

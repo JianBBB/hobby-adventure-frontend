@@ -4,7 +4,7 @@ import { RecordScreen } from "@/components/web/screens/record-screen"
 import { useAppNavigation } from "@/lib/app-navigation-context"
 
 export default function RecordPage() {
-  const { onWriteRecord } = useAppNavigation()
+  const { onWriteRecord, onContinueExploration } = useAppNavigation()
 
-  return <RecordScreen onNewRecord={onWriteRecord} />
+  return <RecordScreen onWriteRecord={onWriteRecord} onContinueExploration={onContinueExploration} />
 }

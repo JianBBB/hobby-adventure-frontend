@@ -1,6 +1,13 @@
 import { apiClient } from "./client"
 import type { PageMeta } from "./client"
-import type { CommonResponse, CreateRecordRequest, PageResponse, Record } from "./types"
+import type {
+  CommonResponse,
+  CreateRecordRequest,
+  UpdateRecordRequest,
+  PageResponse,
+  RecordListItem,
+  RecordDetail,
+} from "./types"
 
 export interface GetRecordsParams {
   categoryId?: number
@@ -11,31 +18,31 @@ export interface GetRecordsParams {
 
 export async function getRecords(
   params: GetRecordsParams = {}
-): Promise<{ items: Record[]; meta: PageMeta }> {
+): Promise<{ items: RecordListItem[]; meta: PageMeta }> {
   const query = new URLSearchParams()
   if (params.categoryId) query.set("categoryId", String(params.categoryId))
   if (params.explorationId) query.set("explorationId", String(params.explorationId))
   query.set("page", String(params.page ?? 1))
   query.set("size", String(params.size ?? 20))
 
-  const res = await apiClient.get<PageResponse<Record>>(`/api/v1/records?${query.toString()}`)
+  const res = await apiClient.get<PageResponse<RecordListItem>>(`/api/v1/records?${query.toString()}`)
   return { items: res.data, meta: res.meta }
 }
 
-export async function getRecord(recordId: number): Promise<Record> {
-  const res = await apiClient.get<CommonResponse<Record>>(`/api/v1/records/${recordId}`)
+export async function getRecord(recordId: number): Promise<RecordDetail> {
+  const res = await apiClient.get<CommonResponse<RecordDetail>>(`/api/v1/records/${recordId}`)
   return res.data
 }
 
-function buildRecordFormData(request: CreateRecordRequest, images: File[]): FormData {
+function buildRecordFormData(request: CreateRecordRequest | UpdateRecordRequest, images: File[]): FormData {
   const formData = new FormData()
   formData.append("request", new Blob([JSON.stringify(request)], { type: "application/json" }))
   images.forEach((image) => formData.append("images", image))
   return formData
 }
 
-export async function createRecord(request: CreateRecordRequest, images: File[]): Promise<Record> {
-  const res = await apiClient.postForm<CommonResponse<Record>>(
+export async function createRecord(request: CreateRecordRequest, images: File[]): Promise<{ recordId: number }> {
+  const res = await apiClient.postForm<CommonResponse<{ recordId: number }>>(
     "/api/v1/records",
     buildRecordFormData(request, images)
   )
@@ -44,10 +51,10 @@ export async function createRecord(request: CreateRecordRequest, images: File[])
 
 export async function updateRecord(
   recordId: number,
-  request: CreateRecordRequest,
+  request: UpdateRecordRequest,
   images: File[]
-): Promise<Record> {
-  const res = await apiClient.patchForm<CommonResponse<Record>>(
+): Promise<{ recordId: number }> {
+  const res = await apiClient.patchForm<CommonResponse<{ recordId: number }>>(
     `/api/v1/records/${recordId}`,
     buildRecordFormData(request, images)
   )

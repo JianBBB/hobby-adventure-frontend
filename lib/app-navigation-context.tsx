@@ -3,17 +3,18 @@
 import { createContext, useContext } from "react"
 
 interface WriteRecordData {
-  explorationId: string
+  mode: "create" | "edit"
+  userExplorationId: number
+  recordId?: number
   explorationName: string
-  explorationIcon: string
   explorationCategory: string
-  isNewRecord: boolean
 }
 
 interface AppNavigationContextValue {
   onExplorationSelect: (id: string) => void
   onContinueExploration: (id: string) => void
   onWriteRecord: (data: WriteRecordData) => void
+  isLoggedIn: boolean
 }
 
 export const AppNavigationContext = createContext<AppNavigationContextValue | null>(null)

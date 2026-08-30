@@ -16,11 +16,11 @@ import { getMyExploration, completeMyExploration } from "@/lib/api/myExploration
 import type { MyExplorationDetail } from "@/lib/api/types"
 
 interface WriteRecordData {
-  explorationId: string
+  mode: "create" | "edit"
+  userExplorationId: number
+  recordId?: number
   explorationName: string
-  explorationIcon: string
   explorationCategory: string
-  isNewRecord: boolean
 }
 
 interface ExplorationDetailScreenProps {
@@ -79,11 +79,10 @@ export function ExplorationDetailScreen({
     setShowCompleteModal(false)
     if (onWriteRecord && exploration) {
       onWriteRecord({
-        explorationId: exploration.explorationId.toString(),
+        mode: "create",
+        userExplorationId: Number(userExplorationId),
         explorationName: exploration.title,
-        explorationIcon: "🧭",
         explorationCategory: exploration.categoryName,
-        isNewRecord: false
       })
     }
   }

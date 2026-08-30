@@ -83,28 +83,49 @@ export interface StartExplorationResponse {
 
 // 기록
 export type EmotionCode =
+  | "PROUD"
   | "HAPPY"
   | "EXCITED"
-  | "PROUD"
-  | "PEACEFUL"
-  | "SURPRISED"
-  | "TIRED"
+  | "TOUCHED"
+  | "CALM"
+  | "BITTERSWEET"
+  | "DIFFICULT"
+  | "LONELY"
   | "DISAPPOINTED"
-  | "SAD"
-  | "ANGRY"
 
-export interface Record {
+export interface RecordListItem {
   recordId: number
   userExplorationId: number
+  explorationId: number
   explorationTitle: string
+  categoryId: number
+  categoryName: string
+  title: string
+  thumbnailUrl: string | null
+  visitedDate: string
+  rating: number
+  emotionCode: EmotionCode
+  emotionLabel: string
+  createdAt: string
+}
+
+export interface RecordDetail {
+  recordId: number
+  userExplorationId: number
+  explorationId: number
+  explorationTitle: string
+  categoryId: number
   categoryName: string
   title: string
   visitedDate: string
   rating: number
   emotionCode: EmotionCode
+  emotionLabel: string
   placeName: string | null
   content: string
   imageUrls: string[]
+  createdAt: string
+  updatedAt: string
 }
 
 export interface CreateRecordRequest {
@@ -115,6 +136,15 @@ export interface CreateRecordRequest {
   emotionCode: EmotionCode
   placeName?: string
   content: string
+}
+
+export interface UpdateRecordRequest {
+  title?: string
+  visitedDate?: string
+  rating?: number
+  emotionCode?: EmotionCode
+  placeName?: string
+  content?: string
 }
 
 // 사용자
