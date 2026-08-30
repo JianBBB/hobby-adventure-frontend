@@ -18,7 +18,7 @@ import { toast } from "sonner"
 import { ApiError } from "@/lib/api/client"
 import { getRecord, createRecord, updateRecord } from "@/lib/api/records"
 import { EMOTION_OPTIONS } from "@/lib/emotion"
-import type { EmotionCode } from "@/lib/api/types"
+import type { EmotionCode, RecordImage } from "@/lib/api/types"
 
 interface WriteRecordScreenProps {
   mode: "create" | "edit"
@@ -49,7 +49,8 @@ export function WriteRecordScreen({
   const [selectedEmotion, setSelectedEmotion] = useState<EmotionCode | "">("")
   const [content, setContent] = useState("")
   const [placeName, setPlaceName] = useState("")
-  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([])
+  const [existingImages, setExistingImages] = useState<RecordImage[]>([])
+  const [markedForDeletion, setMarkedForDeletion] = useState<Set<number>>(new Set())
   const [newImages, setNewImages] = useState<File[]>([])
   const [newImagePreviews, setNewImagePreviews] = useState<string[]>([])
   const [isSaving, setIsSaving] = useState(false)
@@ -66,13 +67,23 @@ export function WriteRecordScreen({
         setSelectedEmotion(record.emotionCode)
         setContent(record.content)
         setPlaceName(record.placeName ?? "")
-        setExistingImageUrls(record.imageUrls)
+        setExistingImages(record.images)
       })
       .catch((err) => {
         toast.error(err instanceof ApiError ? err.message : "기록을 불러오지 못했어요.")
       })
       .finally(() => setLoading(false))
   }, [mode, recordId])
+
+  // 기존 사진은 여기서 바로 안 지우고 표시만 해뒀다가, "저장" 누를 때 한 번에 반영함
+  const toggleMarkForDeletion = (imageId: number) => {
+    setMarkedForDeletion((prev) => {
+      const next = new Set(prev)
+      if (next.has(imageId)) next.delete(imageId)
+      else next.add(imageId)
+      return next
+    })
+  }
 
   useEffect(() => {
     const urls = newImages.map((file) => URL.createObjectURL(file))
@@ -82,14 +93,17 @@ export function WriteRecordScreen({
     }
   }, [newImages])
 
+  const remainingSlots = 10 - existingImages.length + markedForDeletion.size - newImages.length
+
   const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? [])
     if (files.length === 0) return
     setNewImages((prev) => {
       const combined = [...prev, ...files]
-      if (combined.length > 10) {
-        toast.error("사진은 최대 10장까지 첨부할 수 있어요. 앞의 10장만 담았어요.")
-        return combined.slice(0, 10)
+      const limit = 10 - existingImages.length + markedForDeletion.size
+      if (combined.length > limit) {
+        toast.error(`사진은 최대 10장까지 첨부할 수 있어요. ${limit}장만 담았어요.`)
+        return combined.slice(0, Math.max(limit, 0))
       }
       return combined
     })
@@ -118,7 +132,7 @@ export function WriteRecordScreen({
     const request =
       mode === "create"
         ? createRecord({ userExplorationId, ...payload }, newImages)
-        : updateRecord(recordId!, payload, newImages)
+        : updateRecord(recordId!, { ...payload, deleteImageIds: Array.from(markedForDeletion) }, newImages)
 
     request
       .then(() => {
@@ -297,24 +311,40 @@ export function WriteRecordScreen({
           <h3 className="font-bold text-foreground mb-2">사진 추가</h3>
           <p className="text-sm text-muted-foreground mb-4">선택 사항이에요. 최대 10장.</p>
 
-          {mode === "edit" && existingImageUrls.length > 0 && newImages.length === 0 && (
-            <div className="mb-4">
-              <div className="grid grid-cols-4 gap-2">
-                {existingImageUrls.map((url, i) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img key={i} src={url} alt="" className="aspect-square rounded-lg object-cover" />
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                새 사진을 추가하면 기존 사진은 모두 교체돼요.
-              </p>
-            </div>
-          )}
-
-          {newImagePreviews.length > 0 && (
+          {(existingImages.length > 0 || newImagePreviews.length > 0) && (
             <div className="grid grid-cols-4 gap-2 mb-4">
+              {existingImages.map((image) => {
+                const isMarked = markedForDeletion.has(image.imageId)
+                return (
+                  <div key={image.imageId} className="relative aspect-square">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={image.url}
+                      alt=""
+                      className={cn(
+                        "h-full w-full rounded-lg object-cover transition-opacity",
+                        isMarked && "opacity-40"
+                      )}
+                    />
+                    <button
+                      onClick={() => toggleMarkForDeletion(image.imageId)}
+                      className={cn(
+                        "absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full text-background",
+                        isMarked ? "bg-destructive" : "bg-foreground"
+                      )}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                    {isMarked && (
+                      <span className="absolute inset-x-0 bottom-0 rounded-b-lg bg-destructive/80 py-0.5 text-center text-[10px] text-background">
+                        삭제 예정
+                      </span>
+                    )}
+                  </div>
+                )
+              })}
               {newImagePreviews.map((url, i) => (
-                <div key={i} className="relative aspect-square">
+                <div key={`new-${i}`} className="relative aspect-square">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={url} alt="" className="h-full w-full rounded-lg object-cover" />
                   <button
@@ -323,9 +353,18 @@ export function WriteRecordScreen({
                   >
                     <X className="h-3 w-3" />
                   </button>
+                  <span className="absolute inset-x-0 bottom-0 rounded-b-lg bg-primary/80 py-0.5 text-center text-[10px] text-primary-foreground">
+                    추가됨
+                  </span>
                 </div>
               ))}
             </div>
+          )}
+
+          {mode === "edit" && (markedForDeletion.size > 0 || newImages.length > 0) && (
+            <p className="text-xs text-muted-foreground mb-4">
+              "수정 완료"를 눌러야 실제로 반영돼요.
+            </p>
           )}
 
           <input
@@ -340,9 +379,10 @@ export function WriteRecordScreen({
             variant="outline"
             className="w-full gap-2 h-24 border-dashed"
             onClick={() => fileInputRef.current?.click()}
+            disabled={remainingSlots <= 0}
           >
             <Camera className="h-5 w-5" />
-            사진 선택
+            {remainingSlots <= 0 ? "최대 10장까지 담았어요" : "사진 선택"}
           </Button>
         </CardContent>
       </Card>

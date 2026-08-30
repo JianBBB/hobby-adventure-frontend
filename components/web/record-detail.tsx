@@ -198,18 +198,18 @@ export function RecordDetail({
                 </div>
 
                 {/* Photo Gallery */}
-                {record.imageUrls.length > 0 && (
+                {record.images.length > 0 && (
                   <div className="space-y-3">
                     <h3 className="flex items-center gap-2 text-sm font-medium text-foreground">
                       <ImageIcon className="h-4 w-4" />
                       첨부 사진
                     </h3>
                     <div className="grid grid-cols-2 gap-3">
-                      {record.imageUrls.map((url) => (
+                      {record.images.map((image) => (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          key={url}
-                          src={url}
+                          key={image.imageId}
+                          src={image.url}
                           alt="기록 사진"
                           className="aspect-[4/3] w-full rounded-xl object-cover"
                         />

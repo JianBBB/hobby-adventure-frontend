@@ -123,9 +123,14 @@ export interface RecordDetail {
   emotionLabel: string
   placeName: string | null
   content: string
-  imageUrls: string[]
+  images: RecordImage[]
   createdAt: string
   updatedAt: string
+}
+
+export interface RecordImage {
+  imageId: number
+  url: string
 }
 
 export interface CreateRecordRequest {
@@ -145,6 +150,7 @@ export interface UpdateRecordRequest {
   emotionCode?: EmotionCode
   placeName?: string
   content?: string
+  deleteImageIds?: number[]
 }
 
 // 사용자
