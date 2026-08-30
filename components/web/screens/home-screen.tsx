@@ -3,95 +3,76 @@
 import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { 
+import {
   Sparkles,
   Play,
   Compass,
   ChevronRight,
   Shuffle,
-  Dice5,
-  MapPin
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-const allRandomQuests = [
-  { name: "재즈바 탐방", icon: "🎷", category: "음악", description: "도시 속 숨은 재즈바에서 라이브 음악을 즐겨보세요" },
-  { name: "야간 산책", icon: "🌙", category: "야외활동", description: "별빛 아래 도시의 새로운 모습을 발견해보세요" },
-  { name: "독립 서점 탐험", icon: "📚", category: "문화/예술", description: "작은 서점에서 특별한 책을 찾아보세요" },
-  { name: "도예 체험", icon: "🏺", category: "창작", description: "흙을 빚어 나만의 작품을 만들어보세요" },
-  { name: "클라이밍 체험", icon: "🧗", category: "운동", description: "벽을 오르며 새로운 도전을 시작해보세요" },
-  { name: "사진 산책", icon: "📷", category: "창작", description: "카메라와 함께 일상 속 아름다움을 담아보세요" },
-  { name: "새로운 카페 방문", icon: "☕", category: "음식", description: "숨겨진 카페에서 특별한 한 잔을 즐겨보세요" },
-  { name: "공원 피크닉", icon: "🧺", category: "야외활동", description: "자연 속에서 여유로운 시간을 보내세요" },
-  { name: "수제 맥주 탐방", icon: "🍺", category: "음식", description: "크래프트 맥주의 다양한 맛을 경험해보세요" },
-  { name: "미술관 방문", icon: "🖼️", category: "문화/예술", description: "예술 작품 속에서 영감을 얻어보세요" },
-]
-
-const inProgressExplorations = [
-  {
-    id: 1,
-    name: "재즈바 탐험",
-    description: "홍대 근처 재즈바에서 라이브 공연 감상하기",
-    category: "음악",
-    icon: "🎷",
-    progress: 50,
-    currentStep: "공연 감상하기",
-    estimatedTime: "2-3시간",
-  },
-  {
-    id: 2,
-    name: "홈 베이킹 입문",
-    description: "집에서 처음으로 빵 굽기 도전",
-    category: "요리",
-    icon: "🍞",
-    progress: 25,
-    currentStep: "반죽 만들기",
-    estimatedTime: "3-4시간",
-  },
-  {
-    id: 3,
-    name: "별자리 관측",
-    description: "밤하늘 별자리 찾기",
-    category: "자연/과학",
-    icon: "⭐",
-    progress: 75,
-    currentStep: "소감 기록하기",
-    estimatedTime: "1-2시간",
-  },
-]
+import { toast } from "sonner"
+import { ApiError } from "@/lib/api/client"
+import { getExplorations } from "@/lib/api/explorations"
+import { getMyExplorations } from "@/lib/api/myExplorations"
+import type { ExplorationListItem, MyExplorationListItem } from "@/lib/api/types"
 
 interface HomeScreenProps {
   onExplorationSelect?: (id: string) => void
   onContinueExploration?: (id: string) => void
   onNavigateToMyExplorations?: () => void
+  isLoggedIn: boolean
 }
 
-export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavigateToMyExplorations }: HomeScreenProps) {
-  const [randomQuest, setRandomQuest] = useState(allRandomQuests[0])
+export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavigateToMyExplorations, isLoggedIn }: HomeScreenProps) {
+  const [randomQuest, setRandomQuest] = useState<ExplorationListItem | null>(null)
+  const [totalExplorations, setTotalExplorations] = useState<number | null>(null)
   const [isShuffling, setIsShuffling] = useState(false)
-  const [mounted, setMounted] = useState(false)
+  const [inProgress, setInProgress] = useState<MyExplorationListItem[]>([])
+
+  // size=1로 페이지 번호를 무작위로 골라서 요청하면, 전체 탐험 중에서 균등하게 한 건이 뽑힘
+  // (page/size 앞쪽만 계속 불러오면 카탈로그가 커질수록 항상 오래된 것들만 뽑히는 문제가 생김)
+  const pickRandomQuest = useCallback((total: number) => {
+    if (total <= 0) return
+    setIsShuffling(true)
+    const randomPage = Math.floor(Math.random() * total) + 1
+    getExplorations({ page: randomPage, size: 1 })
+      .then(({ items }) => {
+        if (items.length > 0) setRandomQuest(items[0])
+      })
+      .catch((err) => {
+        toast.error(err instanceof ApiError ? err.message : "탐험을 뽑지 못했어요.")
+      })
+      .finally(() => setIsShuffling(false))
+  }, [])
 
   useEffect(() => {
-    setMounted(true)
-    const randomIndex = Math.floor(Math.random() * allRandomQuests.length)
-    setRandomQuest(allRandomQuests[randomIndex])
-  }, [])
-
-  const shuffleRandomQuest = useCallback(() => {
+    // 전체 개수를 먼저 알아야 첫 화면부터 진짜 랜덤 위치를 고를 수 있음(그냥 1페이지로 시작하면 항상 같은 탐험이 뜸)
     setIsShuffling(true)
-    let count = 0
-    const interval = setInterval(() => {
-      const randomIndex = Math.floor(Math.random() * allRandomQuests.length)
-      setRandomQuest(allRandomQuests[randomIndex])
-      count++
-      if (count >= 8) {
-        clearInterval(interval)
+    getExplorations({ page: 1, size: 1 })
+      .then(({ meta }) => {
+        setTotalExplorations(meta.totalElements)
+        pickRandomQuest(meta.totalElements)
+      })
+      .catch((err) => {
+        toast.error(err instanceof ApiError ? err.message : "탐험 목록을 불러오지 못했어요.")
         setIsShuffling(false)
-      }
-    }, 100)
+      })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const currentQuest = mounted ? randomQuest : allRandomQuests[0]
+  // 로그인 상태가 바뀔 때마다(로그인 직후/로그아웃 직후) 다시 반영되도록 isLoggedIn을 의존성에 둠
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setInProgress([])
+      return
+    }
+    getMyExplorations({ status: "STARTED", page: 1, size: 3 })
+      .then(({ items }) => setInProgress(items))
+      .catch((err) => {
+        toast.error(err instanceof ApiError ? err.message : "진행중인 탐험을 불러오지 못했어요.")
+      })
+  }, [isLoggedIn])
 
   return (
     <div className="space-y-8">
@@ -119,37 +100,45 @@ export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavig
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className={cn(
-                    "flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-accent/20 to-primary/20 text-4xl transition-transform",
-                    isShuffling && "animate-bounce"
+                    "flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-accent/20 to-primary/20 text-4xl transition-transform",
+                    isShuffling && "animate-pulse"
                   )}>
-                    {currentQuest.icon}
+                    {randomQuest?.thumbnailUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={randomQuest.thumbnailUrl} alt={randomQuest.title} className="h-full w-full object-cover" />
+                    ) : (
+                      "🧭"
+                    )}
                   </div>
                   <div className="text-left">
-                    <p className="text-xs text-accent font-semibold uppercase tracking-wide mb-1">{currentQuest.category}</p>
-                    <h3 className="text-xl font-bold text-foreground">{currentQuest.name}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">{currentQuest.description}</p>
+                    <p className="text-xs text-accent font-semibold uppercase tracking-wide mb-1">
+                      {randomQuest?.categoryName ?? "탐험 뽑는 중..."}
+                    </p>
+                    <h3 className="text-xl font-bold text-foreground">{randomQuest?.title ?? ""}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">{randomQuest?.shortDescription ?? ""}</p>
                   </div>
                 </div>
-                
+
                 <div className="flex flex-col gap-2">
-                  <Button 
-                    onClick={shuffleRandomQuest}
+                  <Button
+                    onClick={() => totalExplorations && pickRandomQuest(totalExplorations)}
                     disabled={isShuffling}
                     variant="outline"
                     className="gap-2 border-primary/30 hover:bg-primary/10"
                   >
                     <Shuffle className={cn("h-4 w-4", isShuffling && "animate-spin")} />
-                    {isShuffling ? "탐색 중..." : "다시 뽑기"}
+                    {isShuffling ? "뽑는 중..." : "다시 뽑기"}
                   </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Button 
-            size="lg" 
+          <Button
+            size="lg"
             className="gap-2 bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg shadow-accent/30 text-base px-10"
-            onClick={() => onExplorationSelect?.("1")}
+            disabled={!randomQuest}
+            onClick={() => randomQuest && onExplorationSelect?.(randomQuest.id.toString())}
           >
             <Play className="h-5 w-5" />
             랜덤 탐험 시작
@@ -158,7 +147,7 @@ export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavig
       </div>
 
       {/* In Progress Explorations */}
-      {inProgressExplorations.length > 0 && (
+      {inProgress.length > 0 && (
         <div>
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -180,42 +169,44 @@ export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavig
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-          
+
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {inProgressExplorations.map((exploration) => (
-              <Card key={exploration.id} className="group cursor-pointer shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5">
+            {inProgress.map((exploration) => (
+              <Card
+                key={exploration.userExplorationId}
+                className="group cursor-pointer shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5"
+                onClick={() => onContinueExploration?.(exploration.userExplorationId.toString())}
+              >
                 <CardContent className="p-5">
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 text-2xl">
-                      {exploration.icon}
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 text-2xl">
+                      {exploration.thumbnailUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={exploration.thumbnailUrl} alt={exploration.title} className="h-full w-full object-cover" />
+                      ) : (
+                        "🧭"
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs text-primary font-medium">{exploration.category}</span>
+                        <span className="text-xs text-primary font-medium">{exploration.categoryName}</span>
                       </div>
-                      <h3 className="font-bold text-foreground truncate">{exploration.name}</h3>
-                      <p className="text-sm text-muted-foreground truncate">{exploration.description}</p>
+                      <h3 className="font-bold text-foreground truncate">{exploration.title}</h3>
+                      <p className="text-sm text-muted-foreground truncate">{exploration.shortDescription}</p>
                     </div>
                   </div>
-                  
-                  {/* Progress */}
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between text-xs mb-1.5">
-                      <span className="text-muted-foreground">다음: {exploration.currentStep}</span>
-                      <span className="font-medium text-primary">{exploration.progress}%</span>
-                    </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                      <div 
-                        className="h-full rounded-full bg-gradient-to-r from-primary to-primary/80 transition-all"
-                        style={{ width: `${exploration.progress}%` }}
-                      />
-                    </div>
+
+                  <div className="mb-4 text-xs text-muted-foreground">
+                    시작: {exploration.startedAt.slice(0, 10)}
                   </div>
-                  
-                  <Button 
-                    className="w-full gap-2 bg-primary hover:bg-primary/90" 
+
+                  <Button
+                    className="w-full gap-2 bg-primary hover:bg-primary/90"
                     size="sm"
-                    onClick={() => onContinueExploration?.(exploration.id.toString())}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onContinueExploration?.(exploration.userExplorationId.toString())
+                    }}
                   >
                     <Play className="h-4 w-4" />
                     계속 탐험하기
