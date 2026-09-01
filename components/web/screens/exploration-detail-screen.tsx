@@ -14,6 +14,7 @@ import { toast } from "sonner"
 import { ApiError } from "@/lib/api/client"
 import { getMyExploration, completeMyExploration } from "@/lib/api/myExplorations"
 import type { MyExplorationDetail } from "@/lib/api/types"
+import { WaypointSection } from "@/components/web/screens/waypoint-section"
 
 interface WriteRecordData {
   mode: "create" | "edit"
@@ -222,6 +223,12 @@ export function ExplorationDetailScreen({
           </CardContent>
         </Card>
       )}
+
+      {/* 진행중일 땐 여정 추가/수정/삭제 가능, 완료 후엔 조회만(회고) */}
+      <WaypointSection
+        userExplorationId={Number(userExplorationId)}
+        canEdit={exploration.status === "STARTED"}
+      />
     </div>
   )
 }

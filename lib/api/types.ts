@@ -153,6 +153,47 @@ export interface UpdateRecordRequest {
   deleteImageIds?: number[]
 }
 
+export interface WaypointListItem {
+  waypointId: number
+  userExplorationId: number
+  memo: string | null
+  placeName: string | null
+  checkedAt: string
+  thumbnailUrl: string | null
+  photoCount: number
+  createdAt: string
+}
+
+export interface WaypointDetail {
+  waypointId: number
+  userExplorationId: number
+  memo: string | null
+  placeName: string | null
+  checkedAt: string
+  images: WaypointImage[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface WaypointImage {
+  imageId: number
+  url: string
+}
+
+export interface CreateWaypointRequest {
+  userExplorationId: number
+  memo?: string
+  placeName?: string
+  checkedAt: string
+}
+
+export interface UpdateWaypointRequest {
+  memo?: string
+  placeName?: string
+  checkedAt?: string
+  deleteImageIds?: number[]
+}
+
 // 사용자
 export interface UserProfile {
   userId: number
