@@ -1,13 +1,12 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
   ArrowLeft,
   CheckCircle2,
-  PartyPopper,
-  BookOpen,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -15,6 +14,7 @@ import { ApiError } from "@/lib/api/client"
 import { getMyExploration, completeMyExploration } from "@/lib/api/myExplorations"
 import type { MyExplorationDetail } from "@/lib/api/types"
 import { WaypointSection } from "@/components/web/screens/waypoint-section"
+import { WaypointJourneyView } from "@/components/web/screens/waypoint-journey-view"
 
 interface WriteRecordData {
   mode: "create" | "edit"
@@ -22,6 +22,8 @@ interface WriteRecordData {
   recordId?: number
   explorationName: string
   explorationCategory: string
+  draftContent?: string
+  completedAt?: string
 }
 
 interface ExplorationDetailScreenProps {
@@ -43,7 +45,6 @@ export function ExplorationDetailScreen({
   const [exploration, setExploration] = useState<MyExplorationDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [completing, setCompleting] = useState(false)
-  const [showCompleteModal, setShowCompleteModal] = useState(false)
 
   useEffect(() => {
     setLoading(true)
@@ -63,7 +64,6 @@ export function ExplorationDetailScreen({
     completeMyExploration(Number(userExplorationId))
       .then(() => {
         setExploration((prev) => (prev ? { ...prev, status: "COMPLETED" } : prev))
-        setShowCompleteModal(true)
       })
       .catch((err) => {
         toast.error(err instanceof ApiError ? err.message : "탐험을 완료 처리하지 못했어요.")
@@ -71,19 +71,15 @@ export function ExplorationDetailScreen({
       .finally(() => setCompleting(false))
   }
 
-  const handleRecordLater = () => {
-    setShowCompleteModal(false)
-    onBack()
-  }
-
-  const handleRecordNow = () => {
-    setShowCompleteModal(false)
+  const handleWriteRecord = (draftContent?: string) => {
     if (onWriteRecord && exploration) {
       onWriteRecord({
         mode: "create",
         userExplorationId: Number(userExplorationId),
         explorationName: exploration.title,
         explorationCategory: exploration.categoryName,
+        draftContent,
+        completedAt: exploration.completedAt ?? undefined,
       })
     }
   }
@@ -110,41 +106,22 @@ export function ExplorationDetailScreen({
     )
   }
 
+  if (exploration.status === "COMPLETED") {
+    return (
+      <WaypointJourneyView
+        userExplorationId={Number(userExplorationId)}
+        explorationName={exploration.title}
+        explorationCategory={exploration.categoryName}
+        hasRecord={exploration.hasRecord}
+        recordId={exploration.recordId}
+        onWriteRecord={(data) => handleWriteRecord(data.draftContent)}
+        onBack={onBack}
+      />
+    )
+  }
+
   return (
     <div className="space-y-6">
-      {/* Complete Modal */}
-      {showCompleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <Card className="w-full max-w-md mx-4 shadow-2xl">
-            <CardContent className="p-8 text-center">
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-highlight/20 mx-auto mb-6">
-                <PartyPopper className="h-10 w-10 text-highlight" />
-              </div>
-              <h2 className="text-2xl font-bold text-foreground mb-2">탐험 완료!</h2>
-              <p className="text-muted-foreground mb-8">기록을 남길까요?</p>
-              <div className="flex flex-col gap-3">
-                <Button
-                  size="lg"
-                  className="w-full gap-2 bg-accent hover:bg-accent/90"
-                  onClick={handleRecordNow}
-                >
-                  <BookOpen className="h-5 w-5" />
-                  기록 남기기
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="w-full"
-                  onClick={handleRecordLater}
-                >
-                  나중에 하기
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
       {/* Back Button */}
       <Button variant="ghost" className="gap-2 -ml-2" onClick={onBack}>
         <ArrowLeft className="h-4 w-4" />
@@ -176,59 +153,28 @@ export function ExplorationDetailScreen({
         </div>
       </div>
 
-      {/* In progress: complete button */}
-      {exploration.status === "STARTED" && (
-        <Card className="shadow-lg bg-gradient-to-r from-accent/5 to-primary/5 border-accent/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-foreground mb-1">탐험을 마쳤나요?</h3>
-                <p className="text-sm text-muted-foreground">준비됐으면 완료 버튼을 눌러주세요</p>
-              </div>
-              <Button
-                size="lg"
-                className="gap-2 bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg px-8"
-                onClick={handleComplete}
-                disabled={completing}
-              >
-                <CheckCircle2 className="h-5 w-5" />
-                {completing ? "처리 중..." : "탐험 완료"}
-              </Button>
+      {/* 여기 도달하는 시점엔 항상 STARTED — COMPLETED는 위에서 WaypointJourneyView로 이미 반환됨 */}
+      <Card className="shadow-lg bg-gradient-to-r from-accent/5 to-primary/5 border-accent/20">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-bold text-foreground mb-1">탐험을 마쳤나요?</h3>
+              <p className="text-sm text-muted-foreground">준비됐으면 완료 버튼을 눌러주세요</p>
             </div>
-          </CardContent>
-        </Card>
-      )}
+            <Button
+              size="lg"
+              className="gap-2 bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg px-8"
+              onClick={handleComplete}
+              disabled={completing}
+            >
+              <CheckCircle2 className="h-5 w-5" />
+              {completing ? "처리 중..." : "탐험 완료"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Already completed */}
-      {exploration.status === "COMPLETED" && (
-        <Card className="shadow-lg bg-quest-success/5 border-quest-success/20">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-quest-success/10">
-                <CheckCircle2 className="h-6 w-6 text-quest-success" />
-              </div>
-              <div>
-                <h3 className="font-bold text-foreground">이 탐험을 완료했어요!</h3>
-                <p className="text-sm text-muted-foreground">
-                  {exploration.hasRecord ? "기록에서 경험을 확인할 수 있습니다" : "기록을 남겨보는 건 어떨까요?"}
-                </p>
-              </div>
-              {!exploration.hasRecord && (
-                <Button className="ml-auto gap-2" onClick={handleRecordNow}>
-                  <BookOpen className="h-4 w-4" />
-                  기록 남기기
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* 진행중일 땐 여정 추가/수정/삭제 가능, 완료 후엔 조회만(회고) */}
-      <WaypointSection
-        userExplorationId={Number(userExplorationId)}
-        canEdit={exploration.status === "STARTED"}
-      />
+      <WaypointSection userExplorationId={Number(userExplorationId)} canEdit />
     </div>
   )
 }
