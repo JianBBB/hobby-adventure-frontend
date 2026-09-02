@@ -26,6 +26,8 @@ interface WriteRecordScreenProps {
   recordId?: number
   explorationName: string
   explorationCategory: string
+  draftContent?: string
+  completedAt?: string
   onBack: () => void
   onSave: () => void
 }
@@ -36,18 +38,22 @@ export function WriteRecordScreen({
   recordId,
   explorationName,
   explorationCategory,
+  draftContent,
+  completedAt,
   onBack,
   onSave,
 }: WriteRecordScreenProps) {
   const today = new Date()
   const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`
+  // 여정이 여러 날에 걸쳐 있을 수 있어서 "오늘"(=기록 쓰는 날)보다 "완료한 날"이 실제 탐험한 날에 더 가까움
+  const initialVisitedDate = completedAt ? completedAt.slice(0, 10) : todayString
 
   const [loading, setLoading] = useState(mode === "edit")
   const [title, setTitle] = useState(explorationName)
-  const [visitedDate, setVisitedDate] = useState(todayString)
+  const [visitedDate, setVisitedDate] = useState(initialVisitedDate)
   const [rating, setRating] = useState(0)
   const [selectedEmotion, setSelectedEmotion] = useState<EmotionCode | "">("")
-  const [content, setContent] = useState("")
+  const [content, setContent] = useState(draftContent ?? "")
   const [placeName, setPlaceName] = useState("")
   const [existingImages, setExistingImages] = useState<RecordImage[]>([])
   const [markedForDeletion, setMarkedForDeletion] = useState<Set<number>>(new Set())
@@ -210,7 +216,12 @@ export function WriteRecordScreen({
       {/* Date */}
       <Card className="shadow-lg">
         <CardContent className="p-5">
-          <h3 className="font-bold text-foreground mb-4">언제 탐험했나요?</h3>
+          <h3 className="font-bold text-foreground mb-1">언제 탐험했나요?</h3>
+          {mode === "create" && completedAt && (
+            <p className="mb-3 text-xs text-muted-foreground">
+              탐험을 완료한 날짜로 채워뒀어요. 실제로 다녀온 날짜와 다르면 바꿔주세요.
+            </p>
+          )}
           <Input
             type="date"
             value={visitedDate}
@@ -294,7 +305,11 @@ export function WriteRecordScreen({
       <Card className="shadow-lg">
         <CardContent className="p-5">
           <h3 className="font-bold text-foreground mb-2">경험을 기록해주세요</h3>
-          <p className="text-sm text-muted-foreground mb-4">어떤 것을 배웠나요? 기억에 남는 순간이 있나요?</p>
+          <p className="text-sm text-muted-foreground mb-4">
+            {draftContent
+              ? "남겨둔 여정을 바탕으로 초안을 채워뒀어요. 그대로 다듬거나 자유롭게 다시 써도 돼요."
+              : "어떤 것을 배웠나요? 기억에 남는 순간이 있나요?"}
+          </p>
           <Textarea
             placeholder="예: 처음으로 도자기를 빚어봤다. 생각보다 어려웠지만 완성했을 때 뿌듯했다."
             value={content}

@@ -28,6 +28,7 @@ interface SelectedExploration {
   userExplorationId: number
   explorationName: string
   explorationCategory: string
+  completedAt?: string
 }
 
 interface RecordExplorationPickerProps {
@@ -123,6 +124,7 @@ export function RecordExplorationPicker({ onClose, onPickCompleted, onStartNew }
       userExplorationId: exploration.userExplorationId,
       explorationName: exploration.title,
       explorationCategory: exploration.categoryName,
+      completedAt: exploration.completedAt ?? undefined,
     })
   }
 
