@@ -77,6 +77,12 @@ export interface MyExplorationDetail extends MyExplorationListItem {
   recordId: number | null
 }
 
+export interface ExplorationCount {
+  explorationId: number
+  title: string
+  count: number
+}
+
 export interface StartExplorationResponse {
   userExplorationId: number
 }
