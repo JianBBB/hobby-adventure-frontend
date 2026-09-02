@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { ImageOff } from "lucide-react"
 import { ApiError } from "@/lib/api/client"
 import { getWaypoints } from "@/lib/api/waypoints"
+import { WaypointDetailSheet } from "@/components/web/waypoint-detail-sheet"
 import type { WaypointListItem } from "@/lib/api/types"
 
 interface RecordJourneyLogProps {
@@ -28,7 +29,7 @@ export function RecordJourneyLog({ userExplorationId }: RecordJourneyLogProps) {
   const [waypoints, setWaypoints] = useState<WaypointListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [showFull, setShowFull] = useState(false)
-  const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
+  const [selectedWaypointId, setSelectedWaypointId] = useState<number | null>(null)
   // 탐험 성향에 따라 원하는 순서가 다를 수 있어서 사용자가 직접 고름
   const [sortOrder, setSortOrder] = useState<"oldest" | "newest">("oldest")
 
@@ -59,15 +60,6 @@ export function RecordJourneyLog({ userExplorationId }: RecordJourneyLogProps) {
     [...waypoints].sort((a, b) => b.checkedAt.localeCompare(a.checkedAt)).slice(0, 2).map((w) => w.waypointId)
   )
   const visible = showFull ? sorted : sorted.filter((w) => recentIds.has(w.waypointId))
-
-  const toggleExpanded = (id: number) => {
-    setExpandedIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
 
   return (
     <div className="space-y-3 rounded-xl border border-primary/10 p-4">
@@ -102,35 +94,25 @@ export function RecordJourneyLog({ userExplorationId }: RecordJourneyLogProps) {
       ) : (
         <>
           <div className="space-y-3">
-            {visible.map((w) => {
-              const isExpanded = expandedIds.has(w.waypointId)
-              const memo = w.memo ?? ""
-              const isLong = memo.length > 60
-              return (
-                <button
-                  key={w.waypointId}
-                  onClick={() => isLong && toggleExpanded(w.waypointId)}
-                  className="flex w-full gap-3 rounded-xl border border-border p-3 text-left"
-                >
-                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-primary/10 to-accent/10">
-                    <WaypointThumb url={w.thumbnailUrl} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[11px] text-muted-foreground">
-                      {w.checkedAt.slice(0, 10)}{w.placeName && ` · ${w.placeName}`}
-                    </p>
-                    <p className={cn("text-sm text-foreground", !isExpanded && "line-clamp-2")}>
-                      {memo || "(메모 없음)"}
-                    </p>
-                    {isLong && (
-                      <span className="mt-1 inline-block text-xs font-medium text-primary">
-                        {isExpanded ? "접기" : "더보기"}
-                      </span>
-                    )}
-                  </div>
-                </button>
-              )
-            })}
+            {visible.map((w) => (
+              <button
+                key={w.waypointId}
+                onClick={() => setSelectedWaypointId(w.waypointId)}
+                className="flex w-full gap-3 rounded-xl border border-border p-3 text-left"
+              >
+                <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-primary/10 to-accent/10">
+                  <WaypointThumb url={w.thumbnailUrl} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] text-muted-foreground">
+                    {w.checkedAt.slice(0, 10)}{w.placeName && ` · ${w.placeName}`}
+                  </p>
+                  <p className="line-clamp-2 text-sm text-foreground">
+                    {w.memo || "(메모 없음)"}
+                  </p>
+                </div>
+              </button>
+            ))}
           </div>
 
           {waypoints.length > 2 && (
@@ -147,6 +129,8 @@ export function RecordJourneyLog({ userExplorationId }: RecordJourneyLogProps) {
           </p>
         </>
       )}
+
+      <WaypointDetailSheet waypointId={selectedWaypointId} onClose={() => setSelectedWaypointId(null)} />
     </div>
   )
 }

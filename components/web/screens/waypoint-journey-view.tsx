@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { ApiError } from "@/lib/api/client"
 import { getWaypoints } from "@/lib/api/waypoints"
+import { WaypointDetailSheet } from "@/components/web/waypoint-detail-sheet"
 import type { WaypointListItem } from "@/lib/api/types"
 
 // 완료한 탐험을 돌아보는 화면 — 방금 완료했을 때뿐 아니라, 완료 탭에서 다시 들어와도 항상 이 화면을 보여줌
@@ -99,7 +100,7 @@ export function WaypointJourneyView({
   const [waypoints, setWaypoints] = useState<WaypointListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [sortOrder, setSortOrder] = useState<"oldest" | "newest">("oldest")
-  const [expandedMemoIds, setExpandedMemoIds] = useState<Set<number>>(new Set())
+  const [selectedWaypointId, setSelectedWaypointId] = useState<number | null>(null)
 
   useEffect(() => {
     setLoading(true)
@@ -117,15 +118,6 @@ export function WaypointJourneyView({
   )
   const chapters = buildChapters(orderedWaypoints, waypoints)
   const draftSummary = buildDraftSummary(waypoints)
-
-  const toggleMemoExpanded = (id: number) => {
-    setExpandedMemoIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
 
   const handleWriteRecord = () => {
     onWriteRecord({
@@ -183,36 +175,26 @@ export function WaypointJourneyView({
                     {chapter.dayNumber}일차 · {chapter.dateLabel}
                   </p>
                   <div className="space-y-3">
-                    {chapter.entries.map((w) => {
-                      const isExpanded = expandedMemoIds.has(w.waypointId)
-                      const memo = w.memo ?? ""
-                      const isLong = memo.length > 60
-                      return (
-                        <button
-                          key={w.waypointId}
-                          onClick={() => isLong && toggleMemoExpanded(w.waypointId)}
-                          className="flex w-full gap-3 rounded-xl border border-border p-3 text-left"
-                        >
-                          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-primary/10 to-accent/10">
-                            <WaypointThumb url={w.thumbnailUrl} />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-[11px] text-muted-foreground">
-                              {formatWaypointTime(w.checkedAt)}{w.placeName && ` · ${w.placeName}`}
-                              {w.photoCount > 1 && ` · 사진 ${w.photoCount}장`}
-                            </p>
-                            <p className={cn("text-sm text-foreground", !isExpanded && "line-clamp-2")}>
-                              {memo || "(메모 없음)"}
-                            </p>
-                            {isLong && (
-                              <span className="mt-1 inline-block text-xs font-medium text-primary">
-                                {isExpanded ? "접기" : "더보기"}
-                              </span>
-                            )}
-                          </div>
-                        </button>
-                      )
-                    })}
+                    {chapter.entries.map((w) => (
+                      <button
+                        key={w.waypointId}
+                        onClick={() => setSelectedWaypointId(w.waypointId)}
+                        className="flex w-full gap-3 rounded-xl border border-border p-3 text-left"
+                      >
+                        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-primary/10 to-accent/10">
+                          <WaypointThumb url={w.thumbnailUrl} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[11px] text-muted-foreground">
+                            {formatWaypointTime(w.checkedAt)}{w.placeName && ` · ${w.placeName}`}
+                            {w.photoCount > 1 && ` · 사진 ${w.photoCount}장`}
+                          </p>
+                          <p className="line-clamp-2 text-sm text-foreground">
+                            {w.memo || "(메모 없음)"}
+                          </p>
+                        </div>
+                      </button>
+                    ))}
                   </div>
                 </div>
               ))}
@@ -275,6 +257,8 @@ export function WaypointJourneyView({
       <Button variant="outline" className="w-full" onClick={onBack}>
         돌아가기
       </Button>
+
+      <WaypointDetailSheet waypointId={selectedWaypointId} onClose={() => setSelectedWaypointId(null)} />
     </div>
   )
 }
