@@ -18,6 +18,8 @@ interface WriteRecordData {
   recordId?: number
   explorationName: string
   explorationCategory: string
+  draftContent?: string
+  completedAt?: string
 }
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
@@ -47,6 +49,13 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     }
   }, [needsLogin])
 
+  // 기록 작성 화면은 라우트가 아니라 오버레이라 사이드바로 다른 메뉴를 눌러 경로가
+  // 바뀌어도 저절로 안 닫힘 — 실제 경로 이동이 감지되면 오버레이를 닫아줌
+  useEffect(() => {
+    setWriteRecordData(null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname])
+
   const handleExplorationSelect = (id: string) => {
     router.push(`/explore/${id}`)
   }
@@ -74,6 +83,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         onExplorationSelect: handleExplorationSelect,
         onContinueExploration: handleContinueExploration,
         onWriteRecord: handleWriteRecord,
+        onCloseOverlays: () => setWriteRecordData(null),
         isLoggedIn,
       }}
     >
@@ -116,6 +126,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 recordId={writeRecordData.recordId}
                 explorationName={writeRecordData.explorationName}
                 explorationCategory={writeRecordData.explorationCategory}
+                draftContent={writeRecordData.draftContent}
+                completedAt={writeRecordData.completedAt}
                 onBack={handleWriteRecordBack}
                 onSave={handleWriteRecordSave}
               />

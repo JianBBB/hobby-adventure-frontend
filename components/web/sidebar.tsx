@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import type { LoggedInUser } from "@/lib/auth"
 import { getMyExplorations } from "@/lib/api/myExplorations"
+import { useAppNavigation } from "@/lib/app-navigation-context"
 
 const navItems = [
   { path: "/", label: "홈", icon: Home },
@@ -28,6 +29,7 @@ interface SidebarProps {
 
 export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname()
+  const { onCloseOverlays } = useAppNavigation()
   const [startedCount, setStartedCount] = useState(0)
   const [completedCount, setCompletedCount] = useState(0)
 
@@ -66,6 +68,7 @@ export function Sidebar({ user }: SidebarProps) {
       <div className="border-b border-sidebar-border px-4 py-5">
         <Link
           href="/profile"
+          onClick={onCloseOverlays}
           className="block w-full rounded-2xl bg-gradient-to-br from-sidebar-accent/80 to-sidebar-accent/40 p-4 border border-sidebar-border hover:border-primary/30 transition-all group cursor-pointer text-left"
         >
           {/* User Avatar */}
@@ -98,6 +101,7 @@ export function Sidebar({ user }: SidebarProps) {
               <li key={item.path}>
                 <Link
                   href={item.path}
+                  onClick={onCloseOverlays}
                   className={cn(
                     "flex w-full items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-medium transition-all duration-200",
                     isActive

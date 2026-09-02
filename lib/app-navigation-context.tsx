@@ -8,12 +8,15 @@ interface WriteRecordData {
   recordId?: number
   explorationName: string
   explorationCategory: string
+  draftContent?: string
+  completedAt?: string
 }
 
 interface AppNavigationContextValue {
   onExplorationSelect: (id: string) => void
   onContinueExploration: (id: string) => void
   onWriteRecord: (data: WriteRecordData) => void
+  onCloseOverlays: () => void
   isLoggedIn: boolean
 }
 
