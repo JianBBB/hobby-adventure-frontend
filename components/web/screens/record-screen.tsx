@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { RecordDetail } from "@/components/web/record-detail"
@@ -35,6 +36,7 @@ interface WriteRecordData {
   recordId?: number
   explorationName: string
   explorationCategory: string
+  completedAt?: string
 }
 
 interface RecordScreenProps {
@@ -43,9 +45,15 @@ interface RecordScreenProps {
 }
 
 export function RecordScreen({ onWriteRecord, onContinueExploration }: RecordScreenProps) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const recordIdParam = searchParams.get("recordId")
   const [records, setRecords] = useState<RecordListItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedRecordId, setSelectedRecordId] = useState<number | null>(null)
+  // 다른 화면(완료 탐험 상세 등)에서 특정 기록으로 바로 딥링크할 수 있게 URL의 recordId를 초기값으로 씀
+  const [selectedRecordId, setSelectedRecordId] = useState<number | null>(
+    recordIdParam ? Number(recordIdParam) : null
+  )
   const [expandedYears, setExpandedYears] = useState<Record<string, boolean>>({})
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
@@ -81,13 +89,19 @@ export function RecordScreen({ onWriteRecord, onContinueExploration }: RecordScr
       .finally(() => setLoading(false))
   }, [selectedCategoryId])
 
-  const handlePickerPickCompleted = (data: { userExplorationId: number; explorationName: string; explorationCategory: string }) => {
+  const handlePickerPickCompleted = (data: {
+    userExplorationId: number
+    explorationName: string
+    explorationCategory: string
+    completedAt?: string
+  }) => {
     setShowPicker(false)
     onWriteRecord?.({
       mode: "create",
       userExplorationId: data.userExplorationId,
       explorationName: data.explorationName,
       explorationCategory: data.explorationCategory,
+      completedAt: data.completedAt,
     })
   }
 
@@ -153,7 +167,10 @@ export function RecordScreen({ onWriteRecord, onContinueExploration }: RecordScr
       {selectedRecordId !== null && (
         <RecordDetail
           recordId={selectedRecordId}
-          onClose={() => setSelectedRecordId(null)}
+          onClose={() => {
+            setSelectedRecordId(null)
+            if (recordIdParam) router.replace("/record", { scroll: false })
+          }}
           onPrev={handlePrevRecord}
           onNext={handleNextRecord}
           onDelete={handleDeleteRecord}
