@@ -12,7 +12,7 @@ export default function MyExplorationDetailPage() {
   return (
     <ExplorationDetailScreen
       userExplorationId={params.id}
-      onBack={() => router.push("/my-explorations")}
+      onBack={() => router.back()}
       onWriteRecord={onWriteRecord}
     />
   )
