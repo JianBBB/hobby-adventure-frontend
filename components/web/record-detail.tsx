@@ -20,6 +20,7 @@ import { toast } from "sonner"
 import { ApiError } from "@/lib/api/client"
 import { getRecord, deleteRecord } from "@/lib/api/records"
 import { getEmotionEmoji } from "@/lib/emotion"
+import { RecordJourneyLog } from "@/components/web/record-journey-log"
 import type { RecordDetail as RecordDetailType } from "@/lib/api/types"
 
 interface WriteRecordData {
@@ -240,6 +241,9 @@ export function RecordDetail({
                     </p>
                   </div>
                 </div>
+
+                {/* Journey log */}
+                <RecordJourneyLog userExplorationId={record.userExplorationId} />
 
                 {/* Actions */}
                 <div className="flex items-center justify-between border-t pt-6">
