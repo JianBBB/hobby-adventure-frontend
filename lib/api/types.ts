@@ -115,6 +115,11 @@ export interface RecordListItem {
   createdAt: string
 }
 
+export interface RecordArchiveCount {
+  month: string
+  count: number
+}
+
 export interface RecordDetail {
   recordId: number
   userExplorationId: number

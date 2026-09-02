@@ -7,6 +7,7 @@ import type {
   PageResponse,
   RecordListItem,
   RecordDetail,
+  RecordArchiveCount,
 } from "./types"
 
 export interface GetRecordsParams {
@@ -31,6 +32,12 @@ export async function getRecords(
 
 export async function getRecord(recordId: number): Promise<RecordDetail> {
   const res = await apiClient.get<CommonResponse<RecordDetail>>(`/api/v1/records/${recordId}`)
+  return res.data
+}
+
+export async function getRecordArchiveCounts(categoryId?: number): Promise<RecordArchiveCount[]> {
+  const query = categoryId ? `?categoryId=${categoryId}` : ""
+  const res = await apiClient.get<CommonResponse<RecordArchiveCount[]>>(`/api/v1/records/archive-counts${query}`)
   return res.data
 }
 

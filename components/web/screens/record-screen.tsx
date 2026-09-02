@@ -16,10 +16,10 @@ import {
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { ApiError } from "@/lib/api/client"
-import { getRecords } from "@/lib/api/records"
+import { getRecords, getRecordArchiveCounts } from "@/lib/api/records"
 import { getCategories } from "@/lib/api/categories"
 import { getEmotionEmoji } from "@/lib/emotion"
-import type { Category, RecordListItem } from "@/lib/api/types"
+import type { Category, RecordListItem, RecordArchiveCount } from "@/lib/api/types"
 
 // 활동 잔디(히트맵)는 실제 기록 데이터가 쌓인 뒤 다시 붙이기로 미룸 — 지금은 숨김
 // function generateHeatmapData(...) { ... }
@@ -49,6 +49,7 @@ export function RecordScreen({ onWriteRecord, onContinueExploration }: RecordScr
   const searchParams = useSearchParams()
   const recordIdParam = searchParams.get("recordId")
   const [records, setRecords] = useState<RecordListItem[]>([])
+  const [archiveCounts, setArchiveCounts] = useState<RecordArchiveCount[]>([])
   const [loading, setLoading] = useState(true)
   // 다른 화면(완료 탐험 상세 등)에서 특정 기록으로 바로 딥링크할 수 있게 URL의 recordId를 초기값으로 씀
   const [selectedRecordId, setSelectedRecordId] = useState<number | null>(
@@ -89,6 +90,14 @@ export function RecordScreen({ onWriteRecord, onContinueExploration }: RecordScr
       .finally(() => setLoading(false))
   }, [selectedCategoryId])
 
+  useEffect(() => {
+    getRecordArchiveCounts(selectedCategoryId ?? undefined)
+      .then(setArchiveCounts)
+      .catch((err) => {
+        toast.error(err instanceof ApiError ? err.message : "기록 아카이브 개수를 불러오지 못했어요.")
+      })
+  }, [selectedCategoryId])
+
   const handlePickerPickCompleted = (data: {
     userExplorationId: number
     explorationName: string
@@ -110,20 +119,18 @@ export function RecordScreen({ onWriteRecord, onContinueExploration }: RecordScr
     onContinueExploration?.(userExplorationId.toString())
   }
 
-  // Group records by year and month
-  const archiveData = useMemo(() => {
-    return records.reduce((acc, record) => {
-      const [year, month] = record.visitedDate.split("-")
-      const yearKey = year
-      const monthKey = `${Number(month)}월`
+  // 사이드바 연도/월별 개수는 백엔드 집계(archive-counts)로, 실제 목록은 아래 records에서 직접 필터링
+  const archiveSummary = useMemo(() => {
+    return archiveCounts.reduce((acc, { month, count }) => {
+      const [year, m] = month.split("-")
+      const monthKey = `${Number(m)}월`
 
-      if (!acc[yearKey]) acc[yearKey] = {}
-      if (!acc[yearKey][monthKey]) acc[yearKey][monthKey] = []
-      acc[yearKey][monthKey].push(record)
+      if (!acc[year]) acc[year] = {}
+      acc[year][monthKey] = count
 
       return acc
-    }, {} as Record<string, Record<string, RecordListItem[]>>)
-  }, [records])
+    }, {} as Record<string, Record<string, number>>)
+  }, [archiveCounts])
 
   const selectedIndex = records.findIndex((r) => r.recordId === selectedRecordId)
   const hasPrev = selectedIndex > 0
@@ -133,6 +140,9 @@ export function RecordScreen({ onWriteRecord, onContinueExploration }: RecordScr
     setRecords((prev) => prev.filter((r) => r.recordId !== recordId))
     setSelectedRecordId(null)
     toast.success("기록을 삭제했어요.")
+    getRecordArchiveCounts(selectedCategoryId ?? undefined)
+      .then(setArchiveCounts)
+      .catch(() => {})
   }
 
   const handleEditRecord = (data: WriteRecordData) => {
@@ -158,7 +168,10 @@ export function RecordScreen({ onWriteRecord, onContinueExploration }: RecordScr
   const getSelectedRecords = () => {
     if (!selectedMonth) return []
     const [year, month] = selectedMonth.split("-")
-    return archiveData[year]?.[`${month}월`] || []
+    return records.filter((record) => {
+      const [recordYear, recordMonth] = record.visitedDate.split("-")
+      return recordYear === year && Number(recordMonth) === Number(month)
+    })
   }
 
   return (
@@ -264,7 +277,7 @@ export function RecordScreen({ onWriteRecord, onContinueExploration }: RecordScr
                   기록 아카이브
                 </h3>
                 <div className="space-y-2">
-                  {Object.entries(archiveData).sort((a, b) => Number(b[0]) - Number(a[0])).map(([year, months]) => (
+                  {Object.entries(archiveSummary).sort((a, b) => Number(b[0]) - Number(a[0])).map(([year, months]) => (
                     <div key={year}>
                       <button
                         onClick={() => toggleYear(year)}
@@ -282,7 +295,7 @@ export function RecordScreen({ onWriteRecord, onContinueExploration }: RecordScr
                             const monthA = parseInt(a[0])
                             const monthB = parseInt(b[0])
                             return monthB - monthA
-                          }).map(([month, monthRecords]) => (
+                          }).map(([month, count]) => (
                             <button
                               key={month}
                               onClick={() => selectMonth(year, month)}
@@ -295,7 +308,7 @@ export function RecordScreen({ onWriteRecord, onContinueExploration }: RecordScr
                             >
                               <span>{month}</span>
                               <span className="text-xs bg-secondary px-2 py-0.5 rounded-full">
-                                {monthRecords.length}
+                                {count}
                               </span>
                             </button>
                           ))}
