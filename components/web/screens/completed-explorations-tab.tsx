@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -21,7 +20,6 @@ interface CompletedExplorationsTabProps {
 }
 
 export function CompletedExplorationsTab({ completedTotal, onExplorationSelect }: CompletedExplorationsTabProps) {
-  const router = useRouter()
   const [filter, setFilter] = useState<"all" | "no-record">("all")
   const [explorationFilter, setExplorationFilter] = useState<number | null>(null)
 
@@ -172,11 +170,7 @@ export function CompletedExplorationsTab({ completedTotal, onExplorationSelect }
           return (
             <button
               key={c.userExplorationId}
-              onClick={() => {
-                // 기록이 있으면 곧장 그 기록으로, 없으면 탐험 상세(기록 남기기)로
-                if (record) router.push(`/record?recordId=${record.recordId}`)
-                else onExplorationSelect?.(c.userExplorationId.toString())
-              }}
+              onClick={() => onExplorationSelect?.(c.userExplorationId.toString())}
               className="flex w-full items-center gap-3 rounded-xl border border-border p-3 text-left hover:bg-secondary/30"
             >
               <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 text-2xl">
