@@ -197,6 +197,7 @@ export function WaypointSection({ userExplorationId, canEdit }: WaypointSectionP
 
   const remainingExistingImages = existingImages.filter((img) => !deleteImageIds.includes(img.imageId))
   const totalPhotoCount = remainingExistingImages.length + draftPhotos.length
+  const canSaveWaypoint = draftMemo.trim().length > 0 || totalPhotoCount > 0
 
   return (
     <Card className="py-0 shadow-lg">
@@ -433,20 +434,32 @@ export function WaypointSection({ userExplorationId, canEdit }: WaypointSectionP
                     </div>
                   )}
 
-                  <div className="flex gap-2 pt-2">
-                    {viewOnly ? (
-                      <Button variant="outline" size="lg" className="flex-1" onClick={() => setShowForm(false)}>
-                        닫기
-                      </Button>
-                    ) : (
-                      <>
+                  <div className="pt-2">
+                    <div className="flex gap-2">
+                      {viewOnly ? (
                         <Button variant="outline" size="lg" className="flex-1" onClick={() => setShowForm(false)}>
-                          취소
+                          닫기
                         </Button>
-                        <Button size="lg" className="flex-1" onClick={saveWaypoint} disabled={saving}>
-                          {saving ? "저장 중..." : "저장"}
-                        </Button>
-                      </>
+                      ) : (
+                        <>
+                          <Button variant="outline" size="lg" className="flex-1" onClick={() => setShowForm(false)}>
+                            취소
+                          </Button>
+                          <Button
+                            size="lg"
+                            className={cn("flex-1", !canSaveWaypoint && "bg-muted text-muted-foreground hover:bg-muted")}
+                            onClick={saveWaypoint}
+                            disabled={saving || !canSaveWaypoint}
+                          >
+                            {saving ? "저장 중..." : "저장"}
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                    {!viewOnly && !canSaveWaypoint && (
+                      <p className="mt-2 text-center text-xs text-muted-foreground">
+                        사진이나 한마디, 하나는 남겨주세요
+                      </p>
                     )}
                   </div>
                 </div>
