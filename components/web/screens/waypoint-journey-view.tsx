@@ -201,7 +201,7 @@ export function WaypointJourneyView({
             </div>
           ) : (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              아직 남긴 여정이 없어요. 그래도 괜찮아요.
+              남겨둔 여정이 없어요.
             </p>
           )}
         </CardContent>

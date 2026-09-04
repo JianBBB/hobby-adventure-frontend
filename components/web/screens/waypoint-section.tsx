@@ -11,7 +11,7 @@ import { toast } from "sonner"
 import { ApiError } from "@/lib/api/client"
 import { getWaypoints, createWaypoint, updateWaypoint, deleteWaypoint, getWaypoint } from "@/lib/api/waypoints"
 import type { WaypointListItem } from "@/lib/api/types"
-import { X, Plus, MapPin, Camera, ImageOff } from "lucide-react"
+import { X, Plus, MapPin, Camera, Image as ImageIcon, ImageOff } from "lucide-react"
 
 const MAX_PHOTOS_PER_WAYPOINT = 4
 const RECENT_WAYPOINT_COUNT = 3
@@ -63,7 +63,8 @@ export function WaypointSection({ userExplorationId, canEdit }: WaypointSectionP
   const [draftCheckedAt, setDraftCheckedAt] = useState("")
   const [timeMode, setTimeMode] = useState<"now" | "custom">("now")
   const [saving, setSaving] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const galleryInputRef = useRef<HTMLInputElement>(null)
 
   const loadWaypoints = () => {
     setLoading(true)
@@ -198,12 +199,13 @@ export function WaypointSection({ userExplorationId, canEdit }: WaypointSectionP
   const totalPhotoCount = remainingExistingImages.length + draftPhotos.length
 
   return (
-    <Card className="shadow-lg">
+    <Card className="py-0 shadow-lg">
       <CardContent className="p-5">
         <div className="mb-1 flex items-center justify-between">
           <h3 className="font-bold text-foreground">여정</h3>
           {canEdit && (
-            <Button size="sm" className="gap-1.5" onClick={openNewForm}>
+            // 폰에서는 화면 하단 FAB로 항상 손 닿는 곳에 두고, 여기 버튼은 데스크탑 전용으로 남김
+            <Button size="sm" className="hidden gap-1.5 md:inline-flex" onClick={openNewForm}>
               <Plus className="h-4 w-4" />
               여정 남기기
             </Button>
@@ -218,11 +220,7 @@ export function WaypointSection({ userExplorationId, canEdit }: WaypointSectionP
             <div className="h-16 animate-pulse rounded-xl bg-secondary" />
             <div className="h-16 animate-pulse rounded-xl bg-secondary" />
           </div>
-        ) : waypoints.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">
-            아직 아무것도 안 남겼어요. 생각날 때 가볍게 남겨보세요.
-          </p>
-        ) : (
+        ) : waypoints.length === 0 ? null : (
           <div className="relative">
             <div
               className={cn(
@@ -278,6 +276,17 @@ export function WaypointSection({ userExplorationId, canEdit }: WaypointSectionP
           </button>
         )}
 
+        {canEdit && !showForm && (
+          // 스크롤 위치와 무관하게 엄지로 항상 누를 수 있는 위치 — 데스크탑은 위 헤더 버튼으로 충분해서 숨김
+          <button
+            onClick={openNewForm}
+            className="fixed bottom-20 right-4 z-40 flex h-12 items-center gap-1.5 rounded-full bg-primary px-5 text-primary-foreground shadow-lg md:hidden"
+          >
+            <Plus className="h-5 w-5" />
+            <span className="text-sm font-semibold">여정 남기기</span>
+          </button>
+        )}
+
         <Sheet open={showForm} onOpenChange={setShowForm}>
             <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto p-0">
               <div className="mx-auto w-full max-w-lg">
@@ -294,7 +303,8 @@ export function WaypointSection({ userExplorationId, canEdit }: WaypointSectionP
                           <span className="text-xs text-muted-foreground">{totalPhotoCount}/{MAX_PHOTOS_PER_WAYPOINT}</span>
                         )}
                       </div>
-                      <input ref={fileInputRef} type="file" accept="image/*" multiple hidden onChange={handlePhotoSelect} />
+                      <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" hidden onChange={handlePhotoSelect} />
+                      <input ref={galleryInputRef} type="file" accept="image/*" multiple hidden onChange={handlePhotoSelect} />
                       <div className="grid grid-cols-2 gap-2">
                         {remainingExistingImages.map((img) => (
                           <div key={img.imageId} className="relative aspect-square">
@@ -323,13 +333,23 @@ export function WaypointSection({ userExplorationId, canEdit }: WaypointSectionP
                           </div>
                         ))}
                         {!viewOnly && totalPhotoCount < MAX_PHOTOS_PER_WAYPOINT && (
-                          <button
-                            onClick={() => fileInputRef.current?.click()}
-                            className="flex aspect-square w-full flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-border text-muted-foreground hover:border-primary/40 hover:text-primary"
-                          >
-                            <Camera className="h-6 w-6" />
-                            <span className="text-xs">사진 추가</span>
-                          </button>
+                          <div className="col-span-2 grid grid-cols-2 gap-2">
+                            {/* 카메라 촬영은 폰에서만 의미가 있어서 데스크탑에선 숨김 — 이땐 앨범 선택 버튼이 한 줄 다 차지함 */}
+                            <button
+                              onClick={() => cameraInputRef.current?.click()}
+                              className="flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-border py-4 text-muted-foreground hover:border-primary/40 hover:text-primary md:hidden"
+                            >
+                              <Camera className="h-6 w-6" />
+                              <span className="text-xs">사진 촬영</span>
+                            </button>
+                            <button
+                              onClick={() => galleryInputRef.current?.click()}
+                              className="flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-border py-4 text-muted-foreground hover:border-primary/40 hover:text-primary md:col-span-2"
+                            >
+                              <ImageIcon className="h-6 w-6" />
+                              <span className="text-xs">사진 선택</span>
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -392,7 +412,7 @@ export function WaypointSection({ userExplorationId, canEdit }: WaypointSectionP
                         <Input
                           value={draftPlace}
                           onChange={(e) => setDraftPlace(e.target.value)}
-                          placeholder="예: 프릳츠, 우리집, 성수동 카페..."
+                          placeholder="예: OO카페, 한강공원, 우리집..."
                           className="pl-9"
                           disabled={viewOnly}
                         />

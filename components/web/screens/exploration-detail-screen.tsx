@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
   ArrowLeft,
@@ -121,7 +120,7 @@ export function ExplorationDetailScreen({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20 md:pb-0">
       {/* Back Button */}
       <Button variant="ghost" className="gap-2 -ml-2" onClick={onBack}>
         <ArrowLeft className="h-4 w-4" />
@@ -129,8 +128,8 @@ export function ExplorationDetailScreen({
       </Button>
 
       {/* Header */}
-      <div className="flex items-start gap-6">
-        <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary/10 text-5xl">
+      <div className="flex items-start gap-4 sm:gap-6">
+        <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary/10 text-3xl sm:h-24 sm:w-24 sm:text-5xl">
           {exploration.thumbnailUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={exploration.thumbnailUrl} alt={exploration.title} className="h-full w-full object-cover" />
@@ -138,7 +137,7 @@ export function ExplorationDetailScreen({
             "🧭"
           )}
         </div>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-sm font-medium text-primary">{exploration.categoryName}</span>
             <span className={cn(
@@ -148,33 +147,30 @@ export function ExplorationDetailScreen({
               {statusConfig[exploration.status].label}
             </span>
           </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">{exploration.title}</h1>
-          <p className="text-lg text-muted-foreground">{exploration.shortDescription}</p>
+          <h1 className="text-xl font-bold text-foreground mb-2 sm:text-2xl md:text-3xl">{exploration.title}</h1>
+          <p className="text-sm text-muted-foreground sm:text-base md:text-lg">{exploration.shortDescription}</p>
         </div>
       </div>
 
       {/* 여기 도달하는 시점엔 항상 STARTED — COMPLETED는 위에서 WaypointJourneyView로 이미 반환됨 */}
-      <Card className="shadow-lg bg-gradient-to-r from-accent/5 to-primary/5 border-accent/20">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-foreground mb-1">탐험을 마쳤나요?</h3>
-              <p className="text-sm text-muted-foreground">준비됐으면 완료 버튼을 눌러주세요</p>
-            </div>
-            <Button
-              size="lg"
-              className="gap-2 bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg px-8"
-              onClick={handleComplete}
-              disabled={completing}
-            >
-              <CheckCircle2 className="h-5 w-5" />
-              {completing ? "처리 중..." : "탐험 완료"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
       <WaypointSection userExplorationId={Number(userExplorationId)} canEdit />
+
+      {/* 여정 추가보다 훨씬 드문 동작이라 아래쪽에, 덜 눈에 띄게 배치 */}
+      <div className="flex items-center justify-between rounded-xl border border-border p-4">
+        <div>
+          <p className="text-sm font-medium text-foreground">탐험을 마쳤나요?</p>
+          <p className="text-xs text-muted-foreground">완료 후에는 되돌릴 수 없어요</p>
+        </div>
+        <Button
+          variant="outline"
+          className="gap-2"
+          onClick={handleComplete}
+          disabled={completing}
+        >
+          <CheckCircle2 className="h-4 w-4" />
+          {completing ? "처리 중..." : "탐험 완료"}
+        </Button>
+      </div>
     </div>
   )
 }
