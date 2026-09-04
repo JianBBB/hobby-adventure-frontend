@@ -21,7 +21,7 @@ interface HeaderProps {
 
 export function Header({ isLoggedIn, nickname, onLogin, onSignup, onLogout, onNavigateToProfile }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-end gap-4 border-b border-border bg-background/95 backdrop-blur px-8">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-end gap-4 border-b border-border bg-background/95 backdrop-blur px-4 md:px-8">
       {isLoggedIn ? (
         <>
           {/* Account Menu */}

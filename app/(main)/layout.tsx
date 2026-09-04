@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { Sidebar } from "@/components/web/sidebar"
+import { MobileBottomNav } from "@/components/web/mobile-bottom-nav"
 import { Header } from "@/components/web/header"
 import { WriteRecordScreen } from "@/components/web/screens/write-record-screen"
 import { AuthScreen } from "@/components/web/screens/auth-screen"
@@ -104,8 +105,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         )}
 
         <Sidebar user={user} />
+        <MobileBottomNav />
 
-        <main className="ml-64 min-h-screen">
+        <main className="min-h-screen pb-20 md:ml-64 md:pb-0">
           <Header
             isLoggedIn={isLoggedIn}
             nickname={user?.nickname}
@@ -118,7 +120,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             onNavigateToProfile={() => router.push("/profile")}
           />
 
-          <div className="mx-auto max-w-6xl px-8 py-8">
+          <div className="mx-auto max-w-6xl px-4 py-6 md:px-8 md:py-8">
             {needsLogin ? null : writeRecordData ? (
               <WriteRecordScreen
                 mode={writeRecordData.mode}

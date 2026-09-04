@@ -49,7 +49,7 @@ export function Sidebar({ user }: SidebarProps) {
   }, [user, pathname])
 
   return (
-    <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-sidebar text-sidebar-foreground">
+    <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 flex-col bg-sidebar text-sidebar-foreground md:flex">
       {/* Logo */}
       <div className="flex items-center gap-3 border-b border-sidebar-border px-6 py-5">
         <div className="relative">
