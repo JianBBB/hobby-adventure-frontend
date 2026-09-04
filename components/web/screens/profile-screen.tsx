@@ -2,12 +2,10 @@
 
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import {
   User,
   Target,
   BookOpen,
-  Settings,
   Calendar
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -61,10 +59,6 @@ export function ProfileScreen() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-foreground sm:text-2xl">프로필</h1>
-        <Button variant="outline" size="sm" className="gap-2">
-          <Settings className="h-4 w-4" />
-          설정
-        </Button>
       </div>
 
       {/* Profile Card */}
