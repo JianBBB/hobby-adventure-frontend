@@ -93,7 +93,7 @@ export function ExplorationIntroScreen({
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">탐험 소개</h1>
+          <h1 className="text-xl font-bold text-foreground sm:text-2xl">탐험 소개</h1>
           <p className="text-sm text-muted-foreground">이 탐험에 대해 알아보세요</p>
         </div>
       </div>
@@ -112,8 +112,8 @@ export function ExplorationIntroScreen({
           <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
             {exploration.categoryName}
           </span>
-          <h1 className="text-3xl font-bold text-foreground mb-3">{exploration.title}</h1>
-          <p className="text-lg text-muted-foreground">{exploration.shortDescription}</p>
+          <h1 className="text-xl font-bold text-foreground mb-3 sm:text-2xl md:text-3xl">{exploration.title}</h1>
+          <p className="text-sm text-muted-foreground sm:text-base md:text-lg">{exploration.shortDescription}</p>
         </CardContent>
       </Card>
 
@@ -133,14 +133,14 @@ export function ExplorationIntroScreen({
       {/* Start Button */}
       <Card className="shadow-lg bg-gradient-to-r from-accent/5 to-primary/5 border-accent/20">
         <CardContent className="p-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="font-bold text-foreground mb-1">이 탐험을 시작해볼까요?</h3>
               <p className="text-sm text-muted-foreground">시작하면 내 탐험 목록에 추가됩니다</p>
             </div>
             <Button
               size="lg"
-              className="gap-2 bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg px-8"
+              className="w-full gap-2 bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg sm:w-auto sm:px-8"
               onClick={handleStartClick}
             >
               <Play className="h-5 w-5" />

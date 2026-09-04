@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
   Search,
-  Filter,
   ChevronRight,
   Sparkles
 } from "lucide-react"
@@ -42,7 +41,7 @@ function ExplorationCard({
 
   return (
     <Card
-      className="group flex h-full cursor-pointer flex-col shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5"
+      className="group flex h-full min-w-0 cursor-pointer flex-col shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5"
       onClick={handleCardClick}
     >
       <CardContent className="flex flex-1 flex-col p-5">
@@ -150,25 +149,19 @@ export function ExploreScreen({ onExplorationSelect }: ExploreScreenProps) {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">탐험</h1>
+        <h1 className="text-xl font-bold text-foreground sm:text-2xl">탐험</h1>
         <p className="text-muted-foreground">새로운 취미를 발견해보세요</p>
       </div>
 
       {/* Search */}
-      <div className="flex gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input 
-            placeholder="탐험 검색..." 
-            className="pl-10"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <Button variant="outline" className="gap-2">
-          <Filter className="h-4 w-4" />
-          필터
-        </Button>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="탐험 검색..."
+          className="pl-10"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
       </div>
 
       {/* Categories */}

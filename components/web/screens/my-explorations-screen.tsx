@@ -26,7 +26,7 @@ function ExplorationCard({
 
   return (
     <Card
-      className="group cursor-pointer shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5"
+      className="group min-w-0 cursor-pointer shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5"
       onClick={handleCardClick}
     >
       <CardContent className="p-5">
@@ -103,7 +103,7 @@ export function MyExplorationsScreen({ onExplorationSelect }: MyExplorationsScre
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">내 탐험</h1>
+        <h1 className="text-xl font-bold text-foreground sm:text-2xl">내 탐험</h1>
         <p className="text-muted-foreground">시작한 탐험을 모아봤어요</p>
       </div>
 

@@ -77,7 +77,7 @@ export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavig
   return (
     <div className="space-y-8">
       {/* Hero - Simple & Focused */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/5 via-white to-accent/5 border border-border p-8">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/5 via-white to-accent/5 border border-border p-5 sm:p-8">
         <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-highlight/10 to-transparent rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-primary/10 to-transparent rounded-full blur-2xl" />
         
@@ -87,7 +87,7 @@ export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavig
             오늘의 탐험
           </div>
           
-          <h1 className="text-3xl font-bold text-foreground mb-3">
+          <h1 className="text-2xl font-bold text-foreground mb-3 sm:text-3xl">
             오늘은 뭐 해볼까?
           </h1>
           <p className="text-muted-foreground mb-8">
@@ -96,8 +96,8 @@ export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavig
 
           {/* Random Quest Card */}
           <Card className="mb-6 border-2 border-dashed border-accent/30 bg-gradient-to-r from-accent/5 to-primary/5 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+            <CardContent className="p-5 sm:p-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-4">
                   <div className={cn(
                     "flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-accent/20 to-primary/20 text-4xl transition-transform",
@@ -110,12 +110,12 @@ export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavig
                       "🧭"
                     )}
                   </div>
-                  <div className="text-left">
+                  <div className="min-w-0 flex-1 text-left">
                     <p className="text-xs text-accent font-semibold uppercase tracking-wide mb-1">
                       {randomQuest?.categoryName ?? "탐험 뽑는 중..."}
                     </p>
-                    <h3 className="text-xl font-bold text-foreground">{randomQuest?.title ?? ""}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">{randomQuest?.shortDescription ?? ""}</p>
+                    <h3 className="text-lg font-bold text-foreground sm:text-xl">{randomQuest?.title ?? ""}</h3>
+                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{randomQuest?.shortDescription ?? ""}</p>
                   </div>
                 </div>
 
@@ -124,7 +124,7 @@ export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavig
                     onClick={() => totalExplorations && pickRandomQuest(totalExplorations)}
                     disabled={isShuffling}
                     variant="outline"
-                    className="gap-2 border-primary/30 hover:bg-primary/10"
+                    className="w-full gap-2 border-primary/30 hover:bg-primary/10 sm:w-auto"
                   >
                     <Shuffle className={cn("h-4 w-4", isShuffling && "animate-spin")} />
                     {isShuffling ? "뽑는 중..." : "다시 뽑기"}
@@ -136,7 +136,7 @@ export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavig
 
           <Button
             size="lg"
-            className="gap-2 bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg shadow-accent/30 text-base px-10"
+            className="w-full gap-2 bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg shadow-accent/30 text-base sm:w-auto sm:px-10"
             disabled={!randomQuest}
             onClick={() => randomQuest && onExplorationSelect?.(randomQuest.id.toString())}
           >
@@ -174,7 +174,7 @@ export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavig
             {inProgress.map((exploration) => (
               <Card
                 key={exploration.userExplorationId}
-                className="group cursor-pointer shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5"
+                className="group min-w-0 cursor-pointer shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5"
                 onClick={() => onContinueExploration?.(exploration.userExplorationId.toString())}
               >
                 <CardContent className="p-5">

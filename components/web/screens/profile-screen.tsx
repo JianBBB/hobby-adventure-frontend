@@ -60,7 +60,7 @@ export function ProfileScreen() {
     <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">프로필</h1>
+        <h1 className="text-xl font-bold text-foreground sm:text-2xl">프로필</h1>
         <Button variant="outline" size="sm" className="gap-2">
           <Settings className="h-4 w-4" />
           설정
