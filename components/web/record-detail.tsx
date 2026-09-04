@@ -12,7 +12,7 @@ import {
   MapPin,
   Edit3,
   Trash2,
-  Share2,
+  Copy,
   ChevronLeft,
   ChevronRight
 } from "lucide-react"
@@ -140,8 +140,8 @@ export function RecordDetail({
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary text-2xl">
                     {getEmotionEmoji(record.emotionCode)}
                   </div>
-                  <div>
-                    <CardTitle className="text-xl">{record.title}</CardTitle>
+                  <div className="min-w-0">
+                    <CardTitle className="truncate text-xl">{record.title}</CardTitle>
                     <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                       <Calendar className="h-3.5 w-3.5" />
                       <span>{formatDate(record.visitedDate)}</span>
@@ -149,11 +149,9 @@ export function RecordDetail({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  {/* 수정 진입점은 아래 "수정하기" 버튼 하나로 통일 — 여기 편집 아이콘은 중복이라 제거함 */}
                   <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={handleShare}>
-                    <Share2 className="h-5 w-5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={handleEdit}>
-                    <Edit3 className="h-5 w-5" />
+                    <Copy className="h-5 w-5" />
                   </Button>
                   <button
                     onClick={onClose}

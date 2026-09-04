@@ -167,7 +167,7 @@ export function WriteRecordScreen({
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-quest-success/20 mb-6 animate-bounce">
           <CheckCircle2 className="h-10 w-10 text-quest-success" />
         </div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">
+        <h2 className="text-xl font-bold text-foreground mb-2 sm:text-2xl">
           {mode === "create" ? "기록이 저장되었어요!" : "기록이 수정되었어요!"}
         </h2>
         <p className="text-muted-foreground">탐험 기록에서 확인할 수 있어요</p>
@@ -183,7 +183,7 @@ export function WriteRecordScreen({
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">
+          <h1 className="text-xl font-bold text-foreground sm:text-2xl">
             {mode === "create" ? "탐험 기록 남기기" : "기록 수정하기"}
           </h1>
           <p className="text-sm text-muted-foreground">이번 탐험은 어땠나요?</p>
@@ -197,9 +197,9 @@ export function WriteRecordScreen({
             <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-white shadow-md text-3xl">
               🧭
             </div>
-            <div className="flex-1">
+            <div className="min-w-0 flex-1">
               <span className="text-xs text-primary font-medium">{explorationCategory}</span>
-              <h2 className="text-xl font-bold text-foreground">{explorationName}</h2>
+              <h2 className="truncate text-lg font-bold text-foreground sm:text-xl">{explorationName}</h2>
             </div>
           </div>
         </CardContent>
@@ -293,7 +293,7 @@ export function WriteRecordScreen({
           <div className="flex items-center gap-2">
             <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
             <Input
-              placeholder="예: 홍대 재즈바, 강남 클라이밍센터"
+              placeholder="예: OO공방, OO클라이밍짐, 동네 공원"
               value={placeName}
               onChange={(e) => setPlaceName(e.target.value)}
             />
@@ -304,7 +304,19 @@ export function WriteRecordScreen({
       {/* Content */}
       <Card className="shadow-lg">
         <CardContent className="p-5">
-          <h3 className="font-bold text-foreground mb-2">경험을 기록해주세요</h3>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <h3 className="font-bold text-foreground">경험을 기록해주세요</h3>
+            {content.length > 0 && (
+              // 초안이 길면 모바일에서 전체선택→삭제가 느려서, 한 번에 비울 수 있는 버튼을 따로 둠
+              <button
+                type="button"
+                onClick={() => setContent("")}
+                className="shrink-0 text-xs font-medium text-muted-foreground hover:text-destructive"
+              >
+                전체 지우기
+              </button>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground mb-4">
             {draftContent
               ? "남겨둔 여정을 바탕으로 초안을 채워뒀어요. 그대로 다듬거나 자유롭게 다시 써도 돼요."
@@ -403,7 +415,7 @@ export function WriteRecordScreen({
       </Card>
 
       {/* Save Button */}
-      <div className="sticky bottom-4 pt-4">
+      <div className="sticky bottom-20 pt-4 md:bottom-4">
         <Button
           size="lg"
           className={cn(
