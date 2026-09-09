@@ -71,6 +71,9 @@ export interface MyExplorationListItem {
   startedAt: string
   completedAt: string | null
   hasRecord: boolean
+  lastWaypointCheckedAt: string | null
+  lastWaypointMemo: string | null
+  lastWaypointThumbnailUrl: string | null
 }
 
 export interface MyExplorationDetail extends MyExplorationListItem {
