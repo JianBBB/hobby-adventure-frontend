@@ -10,7 +10,7 @@ import {
   ChevronRight,
   Shuffle,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, getExplorationCardInfo } from "@/lib/utils"
 import { toast } from "sonner"
 import { ApiError } from "@/lib/api/client"
 import { getExplorations } from "@/lib/api/explorations"
@@ -171,7 +171,9 @@ export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavig
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {inProgress.map((exploration) => (
+            {inProgress.map((exploration) => {
+              const cardInfo = getExplorationCardInfo(exploration)
+              return (
               <Card
                 key={exploration.userExplorationId}
                 className="group min-w-0 cursor-pointer shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5"
@@ -180,9 +182,9 @@ export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavig
                 <CardContent className="p-5">
                   <div className="flex items-start gap-4 mb-4">
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 text-2xl">
-                      {exploration.thumbnailUrl ? (
+                      {cardInfo.thumbnailUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={exploration.thumbnailUrl} alt={exploration.title} className="h-full w-full object-cover" />
+                        <img src={cardInfo.thumbnailUrl} alt={exploration.title} className="h-full w-full object-cover" />
                       ) : (
                         "🧭"
                       )}
@@ -196,8 +198,26 @@ export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavig
                     </div>
                   </div>
 
-                  <div className="mb-4 text-xs text-muted-foreground">
-                    시작: {exploration.startedAt.slice(0, 10)}
+                  <div
+                    className={cn(
+                      "mb-4 flex h-10 items-center gap-1.5 rounded-md px-2 text-xs",
+                      cardInfo.hasWaypoint ? "bg-accent/10 font-medium text-accent" : "text-muted-foreground"
+                    )}
+                  >
+                    {cardInfo.waypointThumbnailUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={cardInfo.waypointThumbnailUrl}
+                        alt="마지막 여정 사진"
+                        className="h-8 w-8 shrink-0 rounded object-cover"
+                      />
+                    )}
+                    <span className="flex min-w-0 items-baseline">
+                      {cardInfo.infoLabel && <span className="min-w-0 truncate">{cardInfo.infoLabel}</span>}
+                      <span className={cn("shrink-0", cardInfo.infoLabel && "ml-1")}>
+                        {cardInfo.infoLabel ? `· ${cardInfo.infoDate}` : cardInfo.infoDate}
+                      </span>
+                    </span>
                   </div>
 
                   <Button
@@ -213,7 +233,8 @@ export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavig
                   </Button>
                 </CardContent>
               </Card>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}
