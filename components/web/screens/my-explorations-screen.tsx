@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Play, CheckCircle2 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, getExplorationCardInfo } from "@/lib/utils"
 import { toast } from "sonner"
 import { ApiError } from "@/lib/api/client"
 import { getMyExplorations } from "@/lib/api/myExplorations"
@@ -24,6 +24,8 @@ function ExplorationCard({
     onExplorationSelect?.(exploration.userExplorationId.toString())
   }
 
+  const cardInfo = getExplorationCardInfo(exploration)
+
   return (
     <Card
       className="group min-w-0 cursor-pointer shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5"
@@ -32,9 +34,9 @@ function ExplorationCard({
       <CardContent className="p-5">
         <div className="flex items-start gap-4 mb-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 text-3xl">
-            {exploration.thumbnailUrl ? (
+            {cardInfo.thumbnailUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={exploration.thumbnailUrl} alt={exploration.title} className="h-full w-full object-cover" />
+              <img src={cardInfo.thumbnailUrl} alt={exploration.title} className="h-full w-full object-cover" />
             ) : (
               "🧭"
             )}
@@ -46,20 +48,39 @@ function ExplorationCard({
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">시작: {exploration.startedAt.slice(0, 10)}</span>
-          <Button
-            className="gap-2 bg-primary hover:bg-primary/90"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation()
-              handleCardClick()
-            }}
-          >
-            <Play className="h-4 w-4" />
-            계속 탐험하기
-          </Button>
+        <div
+          className={cn(
+            "mb-4 flex h-10 items-center gap-1.5 rounded-md px-2 text-xs",
+            cardInfo.hasWaypoint ? "bg-accent/10 font-medium text-accent" : "text-muted-foreground"
+          )}
+        >
+          {cardInfo.waypointThumbnailUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={cardInfo.waypointThumbnailUrl}
+              alt="마지막 여정 사진"
+              className="h-8 w-8 shrink-0 rounded object-cover"
+            />
+          )}
+          <span className="flex min-w-0 items-baseline">
+            {cardInfo.infoLabel && <span className="min-w-0 truncate">{cardInfo.infoLabel}</span>}
+            <span className={cn("shrink-0", cardInfo.infoLabel && "ml-1")}>
+              {cardInfo.infoLabel ? `· ${cardInfo.infoDate}` : cardInfo.infoDate}
+            </span>
+          </span>
         </div>
+
+        <Button
+          className="w-full gap-2 bg-primary hover:bg-primary/90"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation()
+            handleCardClick()
+          }}
+        >
+          <Play className="h-4 w-4" />
+          계속 탐험하기
+        </Button>
       </CardContent>
     </Card>
   )
