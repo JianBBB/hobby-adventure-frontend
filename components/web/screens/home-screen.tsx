@@ -35,7 +35,10 @@ export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavig
   // (page/size 앞쪽만 계속 불러오면 카탈로그가 커질수록 항상 오래된 것들만 뽑히는 문제가 생김)
   // silent: 사용자가 직접 누른 게 아니라 화면 진입 시 자동으로 불러오는 경우엔 실패해도 토스트를 띄우지 않음
   const pickRandomQuest = useCallback((total: number, silent = false) => {
-    if (total <= 0) return
+    if (total <= 0) {
+      setIsShuffling(false)
+      return
+    }
     setIsShuffling(true)
     const randomPage = Math.floor(Math.random() * total) + 1
     getExplorations({ page: randomPage, size: 1 })
@@ -119,10 +122,20 @@ export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavig
                   </div>
                   <div className="min-w-0 flex-1 text-left">
                     <p className="text-xs text-accent font-semibold uppercase tracking-wide mb-1">
-                      {randomQuest?.categoryName ?? (loadFailed ? "탐험을 불러오지 못했어요" : "탐험 뽑는 중...")}
+                      {randomQuest?.categoryName ??
+                        (loadFailed
+                          ? "탐험을 불러오지 못했어요"
+                          : totalExplorations === 0
+                          ? "아직 등록된 탐험이 없어요"
+                          : "탐험 뽑는 중...")}
                     </p>
                     <h3 className="text-lg font-bold text-foreground sm:text-xl">
-                      {randomQuest?.title ?? (loadFailed ? "잠시 후 다시 시도해주세요" : "")}
+                      {randomQuest?.title ??
+                        (loadFailed
+                          ? "잠시 후 다시 시도해주세요"
+                          : totalExplorations === 0
+                          ? "곧 새로운 탐험이 추가될 예정이에요"
+                          : "")}
                     </h3>
                     <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{randomQuest?.shortDescription ?? ""}</p>
                   </div>
