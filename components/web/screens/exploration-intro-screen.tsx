@@ -34,9 +34,7 @@ export function ExplorationIntroScreen({
     setLoading(true)
     getExploration(Number(explorationId))
       .then(setExploration)
-      .catch((err) => {
-        toast.error(err instanceof ApiError ? err.message : "탐험 정보를 불러오지 못했어요.")
-      })
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [explorationId])
 

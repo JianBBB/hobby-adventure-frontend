@@ -15,7 +15,6 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
-import { ApiError } from "@/lib/api/client"
 import { getRecords, getRecordArchiveCounts } from "@/lib/api/records"
 import { getCategories } from "@/lib/api/categories"
 import { getEmotionEmoji } from "@/lib/emotion"
@@ -74,9 +73,7 @@ export function RecordScreen({ onWriteRecord, onContinueExploration }: RecordScr
   useEffect(() => {
     getCategories()
       .then(setCategories)
-      .catch((err) => {
-        toast.error(err instanceof ApiError ? err.message : "카테고리를 불러오지 못했어요.")
-      })
+      .catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -89,9 +86,7 @@ export function RecordScreen({ onWriteRecord, onContinueExploration }: RecordScr
         hasMoreRef.current = meta.hasNext
         setHasMorePages(meta.hasNext)
       })
-      .catch((err) => {
-        toast.error(err instanceof ApiError ? err.message : "기록 목록을 불러오지 못했어요.")
-      })
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [selectedCategoryId])
 
@@ -112,8 +107,7 @@ export function RecordScreen({ onWriteRecord, onContinueExploration }: RecordScr
       hasMoreRef.current = meta.hasNext
       setHasMorePages(meta.hasNext)
       return items
-    } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "더 불러오지 못했어요.")
+    } catch {
       hasMoreRef.current = false
       setHasMorePages(false)
       return []
@@ -125,9 +119,7 @@ export function RecordScreen({ onWriteRecord, onContinueExploration }: RecordScr
   useEffect(() => {
     getRecordArchiveCounts(selectedCategoryId ?? undefined)
       .then(setArchiveCounts)
-      .catch((err) => {
-        toast.error(err instanceof ApiError ? err.message : "기록 아카이브 개수를 불러오지 못했어요.")
-      })
+      .catch(() => {})
   }, [selectedCategoryId])
 
   const handlePickerPickCompleted = (data: {

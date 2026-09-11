@@ -7,8 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Play, CheckCircle2 } from "lucide-react"
 import { cn, getExplorationCardInfo } from "@/lib/utils"
-import { toast } from "sonner"
-import { ApiError } from "@/lib/api/client"
 import { getMyExplorations } from "@/lib/api/myExplorations"
 import type { MyExplorationListItem } from "@/lib/api/types"
 import { CompletedExplorationsTab } from "@/components/web/screens/completed-explorations-tab"
@@ -114,9 +112,7 @@ export function MyExplorationsScreen({ onExplorationSelect }: MyExplorationsScre
         setInProgressTotal(started.meta.totalElements)
         setCompletedTotal(completedTotalRes.meta.totalElements)
       })
-      .catch((err) => {
-        toast.error(err instanceof ApiError ? err.message : "내 탐험 목록을 불러오지 못했어요.")
-      })
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
 

@@ -66,8 +66,7 @@ export function RecordDetail({
     setRecord(null)
     getRecord(recordId)
       .then(setRecord)
-      .catch((err) => {
-        toast.error(err instanceof ApiError ? err.message : "기록을 불러오지 못했어요.")
+      .catch(() => {
         onClose()
       })
       .finally(() => setLoading(false))

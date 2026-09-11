@@ -75,9 +75,7 @@ export function WriteRecordScreen({
         setPlaceName(record.placeName ?? "")
         setExistingImages(record.images)
       })
-      .catch((err) => {
-        toast.error(err instanceof ApiError ? err.message : "기록을 불러오지 못했어요.")
-      })
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [mode, recordId])
 

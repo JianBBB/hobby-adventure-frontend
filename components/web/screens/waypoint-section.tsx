@@ -70,9 +70,7 @@ export function WaypointSection({ userExplorationId, canEdit }: WaypointSectionP
     setLoading(true)
     getWaypoints({ userExplorationId, sortOrder: "newest", size: 50 })
       .then((res) => setWaypoints(res.items))
-      .catch((err) => {
-        toast.error(err instanceof ApiError ? err.message : "여정을 불러오지 못했어요.")
-      })
+      .catch(() => {})
       .finally(() => setLoading(false))
   }
 
@@ -117,8 +115,8 @@ export function WaypointSection({ userExplorationId, canEdit }: WaypointSectionP
     try {
       const detail = await getWaypoint(waypoint.waypointId)
       setExistingImages(detail.images)
-    } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "사진을 불러오지 못했어요.")
+    } catch {
+      // 사진 못 불러와도 폼은 그대로 열려있음 — 메모/장소 등 나머지 입력은 문제없이 가능
     }
   }
 

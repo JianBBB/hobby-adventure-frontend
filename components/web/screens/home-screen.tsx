@@ -29,10 +29,12 @@ export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavig
   const [totalExplorations, setTotalExplorations] = useState<number | null>(null)
   const [isShuffling, setIsShuffling] = useState(false)
   const [inProgress, setInProgress] = useState<MyExplorationListItem[]>([])
+  const [loadFailed, setLoadFailed] = useState(false)
 
   // size=1로 페이지 번호를 무작위로 골라서 요청하면, 전체 탐험 중에서 균등하게 한 건이 뽑힘
   // (page/size 앞쪽만 계속 불러오면 카탈로그가 커질수록 항상 오래된 것들만 뽑히는 문제가 생김)
-  const pickRandomQuest = useCallback((total: number) => {
+  // silent: 사용자가 직접 누른 게 아니라 화면 진입 시 자동으로 불러오는 경우엔 실패해도 토스트를 띄우지 않음
+  const pickRandomQuest = useCallback((total: number, silent = false) => {
     if (total <= 0) return
     setIsShuffling(true)
     const randomPage = Math.floor(Math.random() * total) + 1
@@ -41,23 +43,29 @@ export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavig
         if (items.length > 0) setRandomQuest(items[0])
       })
       .catch((err) => {
-        toast.error(err instanceof ApiError ? err.message : "탐험을 뽑지 못했어요.")
+        if (!silent) toast.error(err instanceof ApiError ? err.message : "탐험을 뽑지 못했어요.")
       })
       .finally(() => setIsShuffling(false))
   }, [])
 
-  useEffect(() => {
+  const loadInitialQuest = useCallback(() => {
     // 전체 개수를 먼저 알아야 첫 화면부터 진짜 랜덤 위치를 고를 수 있음(그냥 1페이지로 시작하면 항상 같은 탐험이 뜸)
+    // 화면 진입 시 자동으로 불러오는 요청이라 실패해도 토스트 없이 카드에 안내 문구만 남도록 둠
     setIsShuffling(true)
+    setLoadFailed(false)
     getExplorations({ page: 1, size: 1 })
       .then(({ meta }) => {
         setTotalExplorations(meta.totalElements)
-        pickRandomQuest(meta.totalElements)
+        pickRandomQuest(meta.totalElements, true)
       })
-      .catch((err) => {
-        toast.error(err instanceof ApiError ? err.message : "탐험 목록을 불러오지 못했어요.")
+      .catch(() => {
         setIsShuffling(false)
+        setLoadFailed(true)
       })
+  }, [pickRandomQuest])
+
+  useEffect(() => {
+    loadInitialQuest()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -67,11 +75,10 @@ export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavig
       setInProgress([])
       return
     }
+    // 화면 진입 시 자동으로 불러오는 요청이라 실패해도 "진행중인 탐험" 섹션이 조용히 안 보이면 됨
     getMyExplorations({ status: "STARTED", page: 1, size: 3 })
       .then(({ items }) => setInProgress(items))
-      .catch((err) => {
-        toast.error(err instanceof ApiError ? err.message : "진행중인 탐험을 불러오지 못했어요.")
-      })
+      .catch(() => {})
   }, [isLoggedIn])
 
   return (
@@ -112,16 +119,18 @@ export function HomeScreen({ onExplorationSelect, onContinueExploration, onNavig
                   </div>
                   <div className="min-w-0 flex-1 text-left">
                     <p className="text-xs text-accent font-semibold uppercase tracking-wide mb-1">
-                      {randomQuest?.categoryName ?? "탐험 뽑는 중..."}
+                      {randomQuest?.categoryName ?? (loadFailed ? "탐험을 불러오지 못했어요" : "탐험 뽑는 중...")}
                     </p>
-                    <h3 className="text-lg font-bold text-foreground sm:text-xl">{randomQuest?.title ?? ""}</h3>
+                    <h3 className="text-lg font-bold text-foreground sm:text-xl">
+                      {randomQuest?.title ?? (loadFailed ? "잠시 후 다시 시도해주세요" : "")}
+                    </h3>
                     <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{randomQuest?.shortDescription ?? ""}</p>
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-2">
                   <Button
-                    onClick={() => totalExplorations && pickRandomQuest(totalExplorations)}
+                    onClick={() => (totalExplorations ? pickRandomQuest(totalExplorations) : loadInitialQuest())}
                     disabled={isShuffling}
                     variant="outline"
                     className="w-full gap-2 border-primary/30 hover:bg-primary/10 sm:w-auto"

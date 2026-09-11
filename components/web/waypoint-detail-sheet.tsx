@@ -4,8 +4,6 @@ import { useEffect, useState } from "react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { MapPin, ImageOff } from "lucide-react"
-import { toast } from "sonner"
-import { ApiError } from "@/lib/api/client"
 import { getWaypoint } from "@/lib/api/waypoints"
 import type { WaypointDetail } from "@/lib/api/types"
 
@@ -31,8 +29,7 @@ export function WaypointDetailSheet({ waypointId, onClose }: WaypointDetailSheet
     setDetail(null)
     getWaypoint(waypointId)
       .then(setDetail)
-      .catch((err) => {
-        toast.error(err instanceof ApiError ? err.message : "여정을 불러오지 못했어요.")
+      .catch(() => {
         onClose()
       })
       .finally(() => setLoading(false))

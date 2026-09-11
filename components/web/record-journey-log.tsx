@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
-import { toast } from "sonner"
 import { ImageOff } from "lucide-react"
-import { ApiError } from "@/lib/api/client"
 import { getWaypoints } from "@/lib/api/waypoints"
 import { WaypointDetailSheet } from "@/components/web/waypoint-detail-sheet"
 import type { WaypointListItem } from "@/lib/api/types"
@@ -37,9 +35,7 @@ export function RecordJourneyLog({ userExplorationId }: RecordJourneyLogProps) {
     setLoading(true)
     getWaypoints({ userExplorationId, sortOrder: "oldest", size: 100 })
       .then((res) => setWaypoints(res.items))
-      .catch((err) => {
-        toast.error(err instanceof ApiError ? err.message : "여정을 불러오지 못했어요.")
-      })
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [userExplorationId])
 

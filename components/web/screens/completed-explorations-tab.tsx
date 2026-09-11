@@ -4,9 +4,7 @@ import { useEffect, useState } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { toast } from "sonner"
 import { Compass } from "lucide-react"
-import { ApiError } from "@/lib/api/client"
 import { getMyExplorations, getCompletedExplorationCounts } from "@/lib/api/myExplorations"
 import { getRecords } from "@/lib/api/records"
 import type { ExplorationCount, MyExplorationListItem } from "@/lib/api/types"
@@ -38,11 +36,11 @@ export function CompletedExplorationsTab({ completedTotal, onExplorationSelect }
   useEffect(() => {
     getMyExplorations({ status: "COMPLETED", hasRecord: false, page: 1, size: 1 })
       .then((res) => setNoRecordCount(res.meta.totalElements))
-      .catch((err) => toast.error(err instanceof ApiError ? err.message : "개수를 불러오지 못했어요."))
+      .catch(() => {})
 
     getCompletedExplorationCounts()
       .then(setExplorationCounts)
-      .catch((err) => toast.error(err instanceof ApiError ? err.message : "탐험별 개수를 불러오지 못했어요."))
+      .catch(() => {})
   }, [])
 
   // 목록 자체(및 정확한 "이 필터 조건의" 개수)는 filter/explorationFilter가 바뀔 때마다 백엔드에 다시 요청
@@ -60,7 +58,7 @@ export function CompletedExplorationsTab({ completedTotal, onExplorationSelect }
         setItems(res.items)
         setHasNext(res.meta.hasNext)
       })
-      .catch((err) => toast.error(err instanceof ApiError ? err.message : "완료한 탐험을 불러오지 못했어요."))
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [filter, explorationFilter])
 
@@ -94,7 +92,7 @@ export function CompletedExplorationsTab({ completedTotal, onExplorationSelect }
         setPage(nextPage)
         setHasNext(res.meta.hasNext)
       })
-      .catch((err) => toast.error(err instanceof ApiError ? err.message : "더 불러오지 못했어요."))
+      .catch(() => {})
       .finally(() => setLoadingMore(false))
   }
 
@@ -164,7 +162,7 @@ export function CompletedExplorationsTab({ completedTotal, onExplorationSelect }
       )}
 
       {/* 여정 목록이랑 같은 담백한 스타일로 통일 — 그림자/색배지 걷어내고 아이콘+텍스트만 */}
-      <div className="space-y-2">
+      <div className="grid gap-3 md:grid-cols-2">
         {items.map((c) => {
           const record = recordByUserExplorationId.get(c.userExplorationId)
           return (
