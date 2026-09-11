@@ -35,6 +35,7 @@ export interface Category {
   categoryId: number
   code: string
   name: string
+  icon: string
 }
 
 // 탐험 (공개 카탈로그)

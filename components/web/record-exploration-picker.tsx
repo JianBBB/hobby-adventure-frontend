@@ -12,18 +12,6 @@ import { getCategories } from "@/lib/api/categories"
 import { getExplorations, startExploration } from "@/lib/api/explorations"
 import type { Category, ExplorationListItem, MyExplorationListItem } from "@/lib/api/types"
 
-// 탐험 카테고리는 장식용 이모지가 없어서 코드 기준으로 프론트에서만 매핑 (explore-screen.tsx와 동일)
-const categoryIcons: Record<string, string> = {
-  EXERCISE: "💪",
-  VISIT: "📍",
-  GATHERING: "👥",
-  CREATION: "✨",
-  LEARNING: "📚",
-  APPRECIATION: "🎨",
-  REST: "🧘",
-  ETC: "🌟",
-}
-
 interface SelectedExploration {
   userExplorationId: number
   explorationName: string
@@ -85,12 +73,12 @@ export function RecordExplorationPicker({ onClose, onPickCompleted, onStartNew }
     // 기록은 완료한 탐험에만, 그리고 탐험당 1개만 남길 수 있음(백엔드 RecordService 제약) — 진행중이거나 이미 기록이 있는 건 제외
     getMyExplorations({ status: "COMPLETED", page: 1, size: 50 })
       .then(({ items }) => setMyExplorations(items.filter((item) => !item.hasRecord)))
-      .catch((err) => toast.error(err instanceof ApiError ? err.message : "내 탐험 목록을 불러오지 못했어요."))
+      .catch(() => {})
       .finally(() => setMyLoading(false))
 
     getCategories()
       .then(setCategories)
-      .catch((err) => toast.error(err instanceof ApiError ? err.message : "카테고리를 불러오지 못했어요."))
+      .catch(() => {})
   }, [])
 
   // 카테고리가 바뀌면 1페이지부터 새로 불러옴
@@ -102,7 +90,7 @@ export function RecordExplorationPicker({ onClose, onPickCompleted, onStartNew }
         setCatalogPage(1)
         setCatalogHasNext(meta.hasNext)
       })
-      .catch((err) => toast.error(err instanceof ApiError ? err.message : "탐험 목록을 불러오지 못했어요."))
+      .catch(() => {})
       .finally(() => setCatalogLoading(false))
   }, [selectedCategoryId])
 
@@ -115,7 +103,7 @@ export function RecordExplorationPicker({ onClose, onPickCompleted, onStartNew }
         setCatalogPage(nextPage)
         setCatalogHasNext(meta.hasNext)
       })
-      .catch((err) => toast.error(err instanceof ApiError ? err.message : "탐험 목록을 더 불러오지 못했어요."))
+      .catch(() => {})
       .finally(() => setCatalogLoadingMore(false))
   }
 
@@ -213,7 +201,7 @@ export function RecordExplorationPicker({ onClose, onPickCompleted, onStartNew }
                       : "bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
                   )}
                 >
-                  <span>{categoryIcons[category.code] || "🧭"}</span>
+                  <span>{category.icon || "🧭"}</span>
                   <span>{category.name}</span>
                 </button>
               ))}

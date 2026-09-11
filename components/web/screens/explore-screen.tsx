@@ -10,23 +10,9 @@ import {
   Sparkles
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { toast } from "sonner"
-import { ApiError } from "@/lib/api/client"
 import { getCategories } from "@/lib/api/categories"
 import { getExplorations } from "@/lib/api/explorations"
 import type { Category, ExplorationListItem } from "@/lib/api/types"
-
-// 카테고리는 장식용 이모지가 없어서 코드 기준으로 프론트에서만 매핑
-const categoryIcons: Record<string, string> = {
-  EXERCISE: "💪",
-  VISIT: "📍",
-  GATHERING: "👥",
-  CREATION: "✨",
-  LEARNING: "📚",
-  APPRECIATION: "🎨",
-  REST: "🧘",
-  ETC: "🌟",
-}
 
 function ExplorationCard({
   exploration,
@@ -100,9 +86,7 @@ export function ExploreScreen({ onExplorationSelect }: ExploreScreenProps) {
     setCategoriesLoading(true)
     getCategories()
       .then(setCategories)
-      .catch((err) => {
-        toast.error(err instanceof ApiError ? err.message : "카테고리를 불러오지 못했어요.")
-      })
+      .catch(() => {})
       .finally(() => setCategoriesLoading(false))
   }, [])
 
@@ -115,9 +99,7 @@ export function ExploreScreen({ onExplorationSelect }: ExploreScreenProps) {
         setPage(1)
         setHasNext(meta.hasNext)
       })
-      .catch((err) => {
-        toast.error(err instanceof ApiError ? err.message : "탐험 목록을 불러오지 못했어요.")
-      })
+      .catch(() => {})
       .finally(() => setExplorationsLoading(false))
   }, [selectedCategoryId])
 
@@ -130,9 +112,7 @@ export function ExploreScreen({ onExplorationSelect }: ExploreScreenProps) {
         setPage(nextPage)
         setHasNext(meta.hasNext)
       })
-      .catch((err) => {
-        toast.error(err instanceof ApiError ? err.message : "탐험 목록을 더 불러오지 못했어요.")
-      })
+      .catch(() => {})
       .finally(() => setLoadingMore(false))
   }
 
@@ -196,7 +176,7 @@ export function ExploreScreen({ onExplorationSelect }: ExploreScreenProps) {
                   : "bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
               )}
             >
-              <span>{categoryIcons[category.code] || "🧭"}</span>
+              <span>{category.icon || "🧭"}</span>
               <span>{category.name}</span>
             </button>
           ))
