@@ -86,6 +86,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         onWriteRecord: handleWriteRecord,
         onCloseOverlays: () => setWriteRecordData(null),
         isLoggedIn,
+        user,
       }}
     >
       <div className="min-h-screen bg-background">

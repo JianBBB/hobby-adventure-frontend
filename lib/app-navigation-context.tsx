@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext } from "react"
+import type { LoggedInUser } from "@/lib/auth"
 
 interface WriteRecordData {
   mode: "create" | "edit"
@@ -18,6 +19,7 @@ interface AppNavigationContextValue {
   onWriteRecord: (data: WriteRecordData) => void
   onCloseOverlays: () => void
   isLoggedIn: boolean
+  user: LoggedInUser | null
 }
 
 export const AppNavigationContext = createContext<AppNavigationContextValue | null>(null)
