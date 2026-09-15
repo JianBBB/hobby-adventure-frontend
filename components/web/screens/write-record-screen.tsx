@@ -49,7 +49,9 @@ export function WriteRecordScreen({
   const initialVisitedDate = completedAt ? completedAt.slice(0, 10) : todayString
 
   const [loading, setLoading] = useState(mode === "edit")
-  const [title, setTitle] = useState(explorationName)
+  // 탐험명으로 미리 채우면 위 정체성 카드랑 똑같은 글자가 중복되고, 사용자가 안 고치면
+  // 완료 탭에서 같은 탐험 반복 완료를 기록 제목으로 구분하는 기능이 무력화돼서 빈 값으로 시작
+  const [title, setTitle] = useState("")
   const [visitedDate, setVisitedDate] = useState(initialVisitedDate)
   const [rating, setRating] = useState(0)
   const [selectedEmotion, setSelectedEmotion] = useState<EmotionCode | "">("")
@@ -207,7 +209,12 @@ export function WriteRecordScreen({
       <Card className="shadow-lg">
         <CardContent className="p-5">
           <h3 className="font-bold text-foreground mb-4">기록 제목</h3>
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} className="text-lg" />
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="예: 노을 질 때 완주함, 진짜 뿌듯했다"
+            className="text-lg"
+          />
         </CardContent>
       </Card>
 
