@@ -30,7 +30,7 @@ export function CompletedExplorationsTab({ completedTotal, onExplorationSelect }
   // 필터칩/드롭다운에 쓰는 개수들 — 전부 백엔드가 계산해서 주는 값(GROUP BY/COUNT), client에서 배열 세는 게 아님
   const [noRecordCount, setNoRecordCount] = useState(0)
   const [explorationCounts, setExplorationCounts] = useState<ExplorationCount[]>([])
-  const [recordByUserExplorationId, setRecordByUserExplorationId] = useState<Map<number, { recordId: number; title: string }>>(new Map())
+  const [recordByUserExplorationId, setRecordByUserExplorationId] = useState<Map<number, { recordId: number; title: string; thumbnailUrl: string | null }>>(new Map())
 
   // 필터 개수/옵션은 "전체 기준"으로 고정 — filter를 바꿔도 선택지가 갑자기 사라지거나 개수가 바뀌면 헷갈림
   useEffect(() => {
@@ -70,7 +70,7 @@ export function CompletedExplorationsTab({ completedTotal, onExplorationSelect }
       .then((res) => {
         setRecordByUserExplorationId((prev) => {
           const next = new Map(prev)
-          res.items.forEach((r) => next.set(r.userExplorationId, { recordId: r.recordId, title: r.title }))
+          res.items.forEach((r) => next.set(r.userExplorationId, { recordId: r.recordId, title: r.title, thumbnailUrl: r.thumbnailUrl }))
           return next
         })
       })
