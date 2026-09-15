@@ -161,34 +161,72 @@ export function CompletedExplorationsTab({ completedTotal, onExplorationSelect }
         </Select>
       )}
 
-      {/* 여정 목록이랑 같은 담백한 스타일로 통일 — 그림자/색배지 걷어내고 아이콘+텍스트만 */}
-      <div className="grid gap-3 md:grid-cols-2">
+      {/* 여정 줄/기록 줄을 항상 각자 독립적으로 보여줌 — 하나가 있다고 다른 하나를 가리지 않음 (v10 목업) */}
+      <div className="grid items-start gap-3 md:grid-cols-2">
         {items.map((c) => {
           const record = recordByUserExplorationId.get(c.userExplorationId)
           return (
             <button
               key={c.userExplorationId}
               onClick={() => onExplorationSelect?.(c.userExplorationId.toString())}
-              className="flex w-full items-center gap-3 rounded-xl border border-border p-3 text-left hover:bg-secondary/30"
+              className="flex w-full flex-col gap-2 rounded-xl border border-border p-3 text-left hover:bg-secondary/30"
             >
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 text-2xl">
-                {c.thumbnailUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={c.thumbnailUrl} alt={c.title} className="h-full w-full object-cover" />
-                ) : (
-                  "🧭"
-                )}
+              {/* 헤더: 탐험 정체성 아이콘(카탈로그 이미지, 절대 안 바꿈) + 완료일 + 제목 */}
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 text-lg">
+                  {c.thumbnailUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={c.thumbnailUrl} alt={c.title} className="h-full w-full object-cover" />
+                  ) : (
+                    "🧭"
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10.5px] font-semibold text-quest-success">완료 · {c.completedAt?.slice(0, 10)}</p>
+                  <p className="truncate text-sm font-bold text-foreground">{c.title}</p>
+                </div>
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[11px] text-muted-foreground">
-                  {c.title} · {c.completedAt?.slice(0, 10)}
+
+              {/* 여정 줄: 사진은 항상 자기 메모랑 같은 줄에서만 등장 */}
+              <div
+                className={cn(
+                  "flex h-[42px] items-center gap-2 rounded-md bg-secondary px-2",
+                  !c.lastWaypointMemo && "opacity-55"
+                )}
+              >
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded bg-border text-sm">
+                  {c.lastWaypointThumbnailUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={c.lastWaypointThumbnailUrl} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    "–"
+                  )}
+                </div>
+                <span className="shrink-0 text-[10px] font-bold text-muted-foreground">여정</span>
+                <p className="min-w-0 flex-1 truncate text-xs text-foreground">
+                  {c.lastWaypointMemo ?? "남긴 여정 없음"}
                 </p>
-                {c.hasRecord ? (
-                  <p className="truncate text-sm font-semibold text-foreground">{record?.title ?? "기록 보기"}</p>
-                ) : (
-                  <p className="text-sm font-medium text-primary">기록 남기기</p>
-                )}
               </div>
+
+              {/* 기록 줄: 있으면 여정 줄과 같은 높이로, 없으면 강조색 CTA */}
+              {record ? (
+                <div className="flex h-[42px] items-center gap-2 rounded-md bg-primary/10 px-2">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded bg-border text-sm">
+                    {record.thumbnailUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={record.thumbnailUrl} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      "📷"
+                    )}
+                  </div>
+                  <span className="shrink-0 text-[10px] font-bold text-primary">기록</span>
+                  <p className="min-w-0 flex-1 truncate text-xs font-bold text-foreground">&ldquo;{record.title}&rdquo;</p>
+                </div>
+              ) : (
+                <div className="flex h-[42px] items-center justify-center rounded-md bg-accent px-2 text-xs font-bold text-accent-foreground">
+                  기록 남기러 가기
+                </div>
+              )}
             </button>
           )
         })}
