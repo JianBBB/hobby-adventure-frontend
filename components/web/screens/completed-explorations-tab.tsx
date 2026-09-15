@@ -8,6 +8,7 @@ import { Compass } from "lucide-react"
 import { getMyExplorations, getCompletedExplorationCounts } from "@/lib/api/myExplorations"
 import { getRecords } from "@/lib/api/records"
 import type { ExplorationCount, MyExplorationListItem } from "@/lib/api/types"
+import { useAppNavigation } from "@/lib/app-navigation-context"
 
 const PAGE_SIZE = 20
 
@@ -18,6 +19,7 @@ interface CompletedExplorationsTabProps {
 }
 
 export function CompletedExplorationsTab({ completedTotal, onExplorationSelect }: CompletedExplorationsTabProps) {
+  const { onWriteRecord } = useAppNavigation()
   const [filter, setFilter] = useState<"all" | "no-record">("all")
   const [explorationFilter, setExplorationFilter] = useState<number | null>(null)
 
@@ -166,10 +168,17 @@ export function CompletedExplorationsTab({ completedTotal, onExplorationSelect }
         {items.map((c) => {
           const record = recordByUserExplorationId.get(c.userExplorationId)
           return (
-            <button
+            // 카드 전체는 상세(여정) 화면으로, CTA 버튼만 예외적으로 기록 작성으로 바로 이동해야 해서
+            // 버튼 안에 버튼을 못 넣는 문제 때문에 div+role="button"으로 구성
+            <div
               key={c.userExplorationId}
+              role="button"
+              tabIndex={0}
               onClick={() => onExplorationSelect?.(c.userExplorationId.toString())}
-              className="flex w-full flex-col gap-2 rounded-xl border border-border p-3 text-left hover:bg-secondary/30"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") onExplorationSelect?.(c.userExplorationId.toString())
+              }}
+              className="flex w-full cursor-pointer flex-col gap-2 rounded-xl border border-border p-3 text-left hover:bg-secondary/30"
             >
               {/* 헤더: 탐험 정체성 아이콘(카탈로그 이미지, 절대 안 바꿈) + 완료일 + 제목 */}
               <div className="flex items-center gap-2.5">
@@ -223,11 +232,25 @@ export function CompletedExplorationsTab({ completedTotal, onExplorationSelect }
                   <p className="min-w-0 flex-1 truncate text-xs font-bold text-foreground">&ldquo;{record.title}&rdquo;</p>
                 </div>
               ) : (
-                <div className="flex h-[42px] items-center justify-center rounded-md bg-accent px-2 text-xs font-bold text-accent-foreground">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    // 카드 전체 클릭(여정 상세)과 달리, 이 버튼은 곧장 기록 작성 화면으로 감
+                    e.stopPropagation()
+                    onWriteRecord({
+                      mode: "create",
+                      userExplorationId: c.userExplorationId,
+                      explorationName: c.title,
+                      explorationCategory: c.categoryName,
+                      completedAt: c.completedAt ?? undefined,
+                    })
+                  }}
+                  className="flex h-[42px] items-center justify-center rounded-md bg-accent px-2 text-xs font-bold text-accent-foreground"
+                >
                   기록 남기러 가기
-                </div>
+                </button>
               )}
-            </button>
+            </div>
           )
         })}
         {items.length === 0 && (
